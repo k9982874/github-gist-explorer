@@ -15,7 +15,7 @@ import { waitfiy } from './waitfiy';
 import ConfigurationManager from './configuration';
 
 export enum GistTreeSortBy {
-    Lable = 'Lable',
+    Label = 'Label',
     LastUpdated = 'Last Updated',
     Created = 'Created',
 }
@@ -78,7 +78,7 @@ export class GistTreeProvider implements TreeDataProvider<GistTreeItem> {
 
 		let key = 'updatedAt';
 		switch (sortBy) {
-			case GistTreeSortBy.Lable:
+			case GistTreeSortBy.Label:
 				key = 'label';
 				break;
 			case GistTreeSortBy.Created:

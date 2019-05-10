@@ -89,10 +89,10 @@ export class GitHubGistExplorer {
 			});
 	}
 
-	sortByLable() {
+	sortByLabel() {
 		const sortBy: string = ConfigurationManager.get('sortBy')
-		if (sortBy !== GistTreeSortBy.Lable) {
-			this.sort(GistTreeSortBy.Lable);
+		if (sortBy !== GistTreeSortBy.Label) {
+			this.sort(GistTreeSortBy.Label);
 		}
 	}
 
@@ -427,7 +427,7 @@ export function activate(context: ExtensionContext) {
 	// **********************************************************************
 	// commands
 	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.refresh', explorer.refresh.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.sortByLable', explorer.sortByLable.bind(explorer));
+	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.sortByLabel', explorer.sortByLabel.bind(explorer));
 	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.sortByLastUpdated', explorer.sortByLastUpdated.bind(explorer));
 	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.sortByCreated', explorer.sortByCreated.bind(explorer));
 	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.ascending', explorer.ascending.bind(explorer));

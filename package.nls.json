@@ -1,6 +1,6 @@
 {
 	"extension.command.refresh": "Refresh",
-	"extension.command.sort_by_label": "Sort by lable",
+	"extension.command.sort_by_label": "Sort by label",
 	"extension.command.sort_by_last_updated": "Sort by last updated",
 	"extension.command.sort_by_created": "Sort by created",
 	"extension.command.ascending": "Ascending",
