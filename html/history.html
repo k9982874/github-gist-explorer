@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="history.css">
+
+		<!-- Load required Bootstrap and BootstrapVue CSS -->
+		<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+		<link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
+
+		<!-- Load polyfills to support older browsers -->
+		<script src="https://polyfill.io/v3/polyfill.min.js?features=es2015%2CMutationObserver" crossorigin="anonymous"></script>
+
+		<!-- Load Vue followed by BootstrapVue -->
+		<script src="https://unpkg.com/vue@latest/dist/vue.min.js"></script>
+		<script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
+    </head>
+    <body>
+        <div id="app">
+			<b-container>
+				<b-card v-for="item in history" no-body class="mb-1">
+					<b-card-header header-tag="header" class="p-1" role="tab">
+						<h2 v-b-toggle="item.version" class="gist-title">{{item.version}}</h2>
+						<b-link :href="item.user.htmlURL">{{item.user.login}}</b-link>
+						<span>{{new Date(item.committedAt).toLocaleString()}}</span>
+					</b-card-header>
+					<b-collapse :id="item.version" visible accordion="my-accordion" role="tabpanel">
+						<b-card-body>
+						<b-card-text>I start opened because <code>visible</code> is <code>true</code></b-card-text>
+						<b-card-text>test</b-card-text>
+						</b-card-body>
+					</b-collapse>
+				</b-card>
+			</b-container>
+		</div>
+        <script src="history.js"></script>
+    </body>
+</html>

@@ -27,8 +27,8 @@ export class GistTreeProvider implements TreeDataProvider<GistTreeItem> {
 	private sortBy: string = GistTreeSortBy.LastUpdated;
 	private ascending: boolean = false;
 
-	private items: Array<modules.GitHubGist> = new Array();
-	private starredItems: Array<modules.GitHubGist> = new Array();
+	private items: Array<modules.Gist> = new Array();
+	private starredItems: Array<modules.Gist> = new Array();
 
 	refresh(): Promise<void> {
 		this.items = [];
@@ -114,7 +114,7 @@ export class GistTreeProvider implements TreeDataProvider<GistTreeItem> {
 	getChildren(element?: GistTreeItem): GistTreeItem[] {
 		if (element) {
 			let items: Array<GistTreeItem> = new Array();
-			if (element.metadata instanceof modules.GitHubGist) {
+			if (element.metadata instanceof modules.Gist) {
 				items = element.metadata.files.map(f => new GistTreeItem(f));
 			}
 			return items;
@@ -129,12 +129,12 @@ export class GistTreeProvider implements TreeDataProvider<GistTreeItem> {
 
 export class GistTreeItem extends TreeItem {
 	constructor(
-		public readonly metadata: modules.GitHubGist | modules.GitHubGistFile,
+		public readonly metadata: modules.Gist | modules.File,
 		public readonly starred?: boolean
 	) {
-		super('', TreeItemCollapsibleState.None)
+		super('GistTreeItem', TreeItemCollapsibleState.None)
 
-		if (metadata instanceof modules.GitHubGistFile) {
+		if (metadata instanceof modules.File) {
 			this.contextValue = 'GitHubGistFile';
 
 			this.label = metadata.filename;
@@ -167,11 +167,11 @@ export class GistTreeItem extends TreeItem {
 	}
 
 	get tooltip(): string {
-		return this.metadata instanceof modules.GitHubGist ? this.metadata.url : this.metadata.rawURL;
+		return this.metadata instanceof modules.Gist ? this.metadata.url : this.metadata.rawURL;
 	}
 
 	get description(): string {
-		return this.metadata instanceof modules.GitHubGist ? this.metadata.description : this.metadata.type;
+		return this.metadata instanceof modules.Gist ? this.metadata.description : this.metadata.type;
 	}
 
 	iconPath = {

@@ -4,28 +4,26 @@ import * as nls from 'vscode-nls';
 const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
 
 import { commands, extensions, window, workspace } from 'vscode';
-import { ConfigurationChangeEvent, Disposable, ExtensionContext, TextDocument, Uri } from 'vscode';
-
-import * as clipboardy from 'clipboardy';
-
-import * as api from './gist-api';
-import * as modules from './modules';
-import * as constans from './constans';
-import * as filesystem from './file-system';
+import { ConfigurationChangeEvent, Disposable, ExtensionContext, TextDocument, Uri, WebviewPanel } from 'vscode';
 
 import { promisify } from './promisify';
 
+import * as constans from './constans';
+import * as filesystem from './file-system';
+import * as api from './gist-api';
+import * as modules from './modules';
+
+import * as clipboardy from 'clipboardy';
 import ConfigurationManager from './configuration';
 
-import { GitHubGistShortcut } from './shortcut';
+import { Shortcut } from './shortcut';
 import { GistTreeProvider, GistTreeItem, GistTreeSortBy } from './tree-provider';
-import { GistContentProvider } from './content-provider';
+import { HistoryPanel } from './history-panel';
 
 export class GitHubGistExplorer {
 	public readonly treeProvider: GistTreeProvider = new GistTreeProvider();
-	public readonly contentProvider: GistContentProvider = new GistContentProvider();
 
-	public readonly shortcut: GitHubGistShortcut = new GitHubGistShortcut();
+	public readonly shortcut: Shortcut = new Shortcut();
 
 	public readonly documentsSaving: Array<string> = new Array();
 
@@ -158,7 +156,7 @@ export class GitHubGistExplorer {
 	}
 
 	editGist(node: GistTreeItem) {
-		const gist: modules.GitHubGist = node.metadata as modules.GitHubGist;
+		const gist: modules.Gist = node.metadata as modules.Gist;
 
 		const options = {
 			value: gist.description,
@@ -177,7 +175,7 @@ export class GitHubGistExplorer {
 	}
 
 	deleteGist(node: GistTreeItem) {
-		const gist: modules.GitHubGist = node.metadata as modules.GitHubGist;
+		const gist: modules.Gist = node.metadata as modules.Gist;
 		this.showWarningMessage(`Are you sure to delete gist ${node.label}?`, { modal: true }, 'Ok')
 			.then(value => {
 				if (value === 'Ok') {
@@ -198,7 +196,7 @@ export class GitHubGistExplorer {
 	}
 
 	starGist(node: GistTreeItem) {
-		const gist: modules.GitHubGist = node.metadata as modules.GitHubGist;
+		const gist: modules.Gist = node.metadata as modules.Gist;
 		api.starWaitable(gist.id)
 			.then(() => {
 				const home: string = this.getHomeDirectory();
@@ -212,7 +210,7 @@ export class GitHubGistExplorer {
 	}
 
 	unstarGist(node: GistTreeItem) {
-		const gist: modules.GitHubGist = node.metadata as modules.GitHubGist;
+		const gist: modules.Gist = node.metadata as modules.Gist;
 		api.unstarWaitable(gist.id)
 			.then(() => {
 				const home: string = this.getHomeDirectory();
@@ -223,6 +221,20 @@ export class GitHubGistExplorer {
 			.catch(error => {
 				this.showErrorMessage(error.message);
 			});
+	}
+
+	history(node: GistTreeItem) {
+		HistoryPanel.show((node.metadata as modules.Gist).id);
+		/*
+		api.retrieveWaitable(gist.id)
+			.then(data => {
+				HistoryPanel.show(data);
+				console.log(data);
+			})
+			.catch(error => {
+				this.showErrorMessage(error.message);
+			});
+		*/
 	}
 
 	paste(node: GistTreeItem) {
@@ -251,7 +263,7 @@ export class GitHubGistExplorer {
 					return Promise.reject(new Error(msg));
 				}
 
-				const gist = node.metadata as modules.GitHubGist
+				const gist = node.metadata as modules.Gist;
 				return api.updateFileWaitable(gist.id, filename, content === undefined ? filename : content);
 			})
 			.then(() => {
@@ -262,24 +274,8 @@ export class GitHubGistExplorer {
 			});
 	}
 
-	/*
 	editFile(node: GistTreeItem) {
-		const file: modules.GitHubGistFile = node.metadata as modules.GitHubGistFile;
-
-		const uri = Uri.parse(`GitHubGistFile:${Buffer.from(JSON.stringify(file)).toString('base64')}`);
-
-		this.openTextDocument(uri)
-			.then(doc => {
-				return this.showTextDocument(doc, { preview: true });
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
-	*/
-
-	editFile(node: GistTreeItem) {
-		const file: modules.GitHubGistFile = node.metadata as modules.GitHubGistFile;
+		const file: modules.File = node.metadata as modules.File;
 
 		const home: string = this.getHomeDirectory();
 		const path: string = `${home}/${file.gistID}`;
@@ -327,7 +323,7 @@ export class GitHubGistExplorer {
 	}
 
 	deleteFile(node: GistTreeItem) {
-		const file: modules.GitHubGistFile = node.metadata as modules.GitHubGistFile;
+		const file: modules.File = node.metadata as modules.File;
 		api.deleteFileWaitable(file.gistID, file.filename)
 			.then(() => {
 				const home: string = this.getHomeDirectory();
@@ -342,7 +338,7 @@ export class GitHubGistExplorer {
 	}
 
 	renameFile(node: GistTreeItem) {
-		const file: modules.GitHubGistFile = node.metadata as modules.GitHubGistFile;
+		const file: modules.File = node.metadata as modules.File;
 
 		const options = {
 			value: file.filename,
@@ -369,7 +365,7 @@ export class GitHubGistExplorer {
 	}
 
 	reloadFile(node: GistTreeItem) {
-		const file: modules.GitHubGistFile = node.metadata as modules.GitHubGistFile;
+		const file: modules.File = node.metadata as modules.File;
 
 		const home: string = this.getHomeDirectory();
 		const path: string = `${home}/${file.gistID}`;
@@ -456,7 +452,9 @@ export function activate(context: ExtensionContext) {
 	// **********************************************************************
 	// provider
 	subscriber.register(window.registerTreeDataProvider, window, 'GitHubGistExplorer', explorer.treeProvider);
-	// subscriber.register(workspace.registerTextDocumentContentProvider, workspace, 'GitHubGistFile', explorer.contentProvider);
+	if (window.registerWebviewPanelSerializer) {
+		window.registerWebviewPanelSerializer(HistoryPanel.viewType, HistoryPanel.serializer);
+	}
 	// **********************************************************************
 
 	// **********************************************************************
@@ -477,6 +475,7 @@ export function activate(context: ExtensionContext) {
 	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.deleteGist', explorer.deleteGist.bind(explorer));
 	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.starGist', explorer.starGist.bind(explorer));
 	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.unstarGist', explorer.unstarGist.bind(explorer));
+	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.history', explorer.history.bind(explorer));
 	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.paste', explorer.paste.bind(explorer));
 	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.addFile', explorer.addFile.bind(explorer));
 	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.editFile', explorer.editFile.bind(explorer));

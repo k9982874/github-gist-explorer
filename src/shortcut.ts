@@ -16,12 +16,12 @@ import ConfigurationManager, { Configuration } from './configuration';
 
 import { GistTreeProvider } from './tree-provider';
 
-export class GitHubGistShortcut {
-	private save(config: Configuration, content: string, filename?: string): Promise<modules.GitHubGist> {
+export class Shortcut {
+	private save(config: Configuration, content: string, filename?: string): Promise<modules.Gist> {
 		return api.listWaitable(config.gitHub.username)
 			.then(results => {
-				return window.showQuickPick<modules.GitHubGist>(
-					[ ...results, new modules.GitHubGist() ],
+				return window.showQuickPick<modules.Gist>(
+					[ ...results, new modules.Gist() ],
 					{ placeHolder: localize('explorer.pick_gist', 'Please pick a gist to add')}
 				);
 			})

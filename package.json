@@ -2,7 +2,7 @@
 	"name": "github-gist-explorer",
 	"displayName": "Github Gist Explorer",
 	"description": "Management your GitHub Gists with Visual Studio Code",
-	"version": "0.0.9",
+	"version": "0.1.0",
 	"icon": "media/icon.png",
 	"publisher": "k9982874",
 	"author": {
@@ -25,7 +25,12 @@
 		"explorer"
 	],
 	"activationEvents": [
-		"onView:GitHubGistExplorer"
+		"onCommand:GitHubGistExplorer.shortcut.newGist",
+		"onCommand:GitHubGistExplorer.shortcut.saveIt",
+		"onCommand:GitHubGistExplorer.shortcut.clipIt",
+		"onCommand:GitHubGistExplorer.shortcut.pasteIt",
+		"onView:GitHubGistExplorer",
+		"onView:GitHubGistHistory"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -121,6 +126,10 @@
 				"title": "%extension.command.unstar_gist%"
 			},
 			{
+				"command": "GitHubGistExplorer.history",
+				"title": "%extension.command.history%"
+			},
+			{
 				"command": "GitHubGistExplorer.paste",
 				"title": "%extension.command.paste%"
 			},
@@ -213,6 +222,14 @@
 					"when": "false"
 				},
 				{
+					"command": "GitHubGistExplorer.history",
+					"when": "false"
+				},
+				{
+					"command": "GitHubGistExplorer.paste",
+					"when": "false"
+				},
+				{
 					"command": "GitHubGistExplorer.addFile",
 					"when": "false"
 				},
@@ -230,10 +247,6 @@
 				},
 				{
 					"command": "GitHubGistExplorer.reloadFile",
-					"when": "false"
-				},
-				{
-					"command": "GitHubGistExplorer.paste",
 					"when": "false"
 				}
 			],
@@ -294,6 +307,11 @@
 					"command": "GitHubGistExplorer.deleteGist",
 					"when": "view == GitHubGistExplorer && viewItem =~ /^GitHubGistRoot/",
 					"group": "GitHubGistRoot@3"
+				},
+				{
+					"command": "GitHubGistExplorer.history",
+					"when": "view == GitHubGistExplorer && viewItem =~ /^GitHubGistRoot/",
+					"group": "GitHubGistHistory@1"
 				},
 				{
 					"command": "GitHubGistExplorer.paste",

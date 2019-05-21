@@ -1,0 +1,8 @@
+html, body {
+    margin: 5px;
+    padding: 0;
+}
+
+.gist-title {
+    cursor: pointer;
+}

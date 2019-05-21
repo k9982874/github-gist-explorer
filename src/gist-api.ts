@@ -51,17 +51,17 @@ export default class Gist {
 			});
 	}
 
-	list(username: string): Promise<modules.GitHubGist[]> {
+	list(username: string): Promise<modules.Gist[]> {
 		const options: AxiosRequestConfig = this.createRequestConfig();
 
-		const p = function (page: number, results: Array<modules.GitHubGist>) {
+		const p = function (page: number, results: Array<modules.Gist>) {
 			return axios.get(`${constans.GITHUB_API_URL}/users/${username}/gists?page=${page}`, options)
 				.then(response => {
 					if (response.status !== 200) {
 						return Promise.resolve([]);
 					}
 
-					const data = response.data.map(value => new modules.GitHubGist(value));
+					const data = response.data.map(value => new modules.Gist(value));
 					return Promise.resolve(data);
 				})
 				.then(data => {
@@ -78,17 +78,17 @@ export default class Gist {
 		return p(1, []);
 	}
 
-	listStarred(): Promise<modules.GitHubGist[]> {
+	listStarred(): Promise<modules.Gist[]> {
 		const options: AxiosRequestConfig = this.createRequestConfig();
 
-		const p = function (page: number, results: Array<modules.GitHubGist>) {
+		const p = function (page: number, results: Array<modules.Gist>) {
 			return axios.get(`${constans.GITHUB_API_URL}/gists/starred?page=${page}`, options)
 				.then(response => {
 					if (response.status !== 200) {
 						return Promise.resolve([]);
 					}
 
-					const data = response.data.map(value => new modules.GitHubGist(value));
+					const data = response.data.map(value => new modules.Gist(value));
 					return Promise.resolve(data);
 				})
 				.then(data => {
@@ -105,9 +105,8 @@ export default class Gist {
 		return p(1, []);
 	}
 
-	add(type: string, description: string, files?: Array<File>): Promise<modules.GitHubGist> {
+	add(type: string, description: string, files?: Array<File>): Promise<modules.Gist> {
 		const options: AxiosRequestConfig = this.createRequestConfig();
-
 
 		const data = {
 			description,
@@ -137,11 +136,30 @@ export default class Gist {
 					return Promise.reject(new Error(response.statusText));
 				}
 
-				return Promise.resolve(new modules.GitHubGist(response.data));
+				return Promise.resolve(new modules.Gist(response.data));
 			});
 	}
 
-	update(gistID: string, description: string): Promise<modules.GitHubGist> {
+	retrieve(gistID: string, sha?: string): Promise<modules.Gist> {
+		const options: AxiosRequestConfig = this.createRequestConfig();
+
+		let url = `${constans.GITHUB_API_URL}/gists/${gistID}`;
+		if (sha) {
+			url = url + `/${sha}`;
+		}
+
+		return axios.get(url, options)
+			.then(response => {
+				if ((response.status !== 200) && (response.status !== 201)) {
+					return Promise.reject(new Error(response.statusText));
+				}
+
+				const data = new modules.Gist(response.data);
+				return Promise.resolve(data);
+			});
+	}
+
+	update(gistID: string, description: string): Promise<modules.Gist> {
 		const options: AxiosRequestConfig = this.createRequestConfig();
 
 		const data = {
@@ -155,7 +173,7 @@ export default class Gist {
 					return Promise.reject(new Error(response.statusText));
 				}
 
-				return Promise.resolve(new modules.GitHubGist(response.data));
+				return Promise.resolve(new modules.Gist(response.data));
 			});
 	}
 
@@ -198,7 +216,7 @@ export default class Gist {
 			});
 	}
 
-	updateFile(gistID: string, filename: string, content: string): Promise<modules.GitHubGist> {
+	updateFile(gistID: string, filename: string, content: string): Promise<modules.Gist> {
 		const options: AxiosRequestConfig = this.createRequestConfig();
 
 		const data = {
@@ -214,7 +232,7 @@ export default class Gist {
 					return Promise.reject(new Error(response.statusText));
 				}
 
-				return Promise.resolve(new modules.GitHubGist(response.data));
+				return Promise.resolve(new modules.Gist(response.data));
 			});
 	}
 
@@ -265,6 +283,7 @@ export const getFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize('
 export const listWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize('explorer.listing_gist', 'Listing gist...')}`, list);
 export const listStarredWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize('explorer.listing_starred_gist', 'Listing starred gist...')}`, listStarred);
 export const addWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize('explorer.creating_gist', 'Creating gist...')}`, add);
+export const retrieveWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize('explorer.retrieve_gist', 'Retrieve gist...')}`, retrieve);
 export const updateWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize('explorer.updating_gist', 'Updating gist...')}`, update);
 export const destroyWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize('explorer.deleting_gist', 'Deleting gist...')}`, destroy);
 export const starWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize('explorer.star_gist', 'Staring gist...')}`, star);
@@ -278,22 +297,27 @@ export function getFile(url: string): Promise<any> {
 	return (new Gist(token)).getFile(url);
 }
 
-export function list(username: string): Promise<modules.GitHubGist[]> {
+export function list(username: string): Promise<modules.Gist[]> {
 	const token: string = workspace.getConfiguration('github').get('token');
 	return (new Gist(token)).list(username);
 }
 
-export function listStarred(): Promise<modules.GitHubGist[]> {
+export function listStarred(): Promise<modules.Gist[]> {
 	const token: string = workspace.getConfiguration('github').get('token');
 	return (new Gist(token)).listStarred();
 }
 
-export function add(type: string, description: string, files?: Array<File>): Promise<modules.GitHubGist> {
+export function add(type: string, description: string, files?: Array<File>): Promise<modules.Gist> {
 	const token: string = workspace.getConfiguration('github').get('token');
 	return (new Gist(token)).add(type, description, files);
 }
 
-export function update(gistID: string, description: string): Promise<modules.GitHubGist> {
+export function retrieve(gistID: string): Promise<modules.Gist> {
+	const token: string = workspace.getConfiguration('github').get('token');
+	return (new Gist(token)).retrieve(gistID);
+}
+
+export function update(gistID: string, description: string): Promise<modules.Gist> {
 	const token: string = workspace.getConfiguration('github').get('token');
 	return (new Gist(token)).update(gistID, description);
 }
@@ -313,7 +337,7 @@ export function unstar(gistID: string): Promise<void> {
 	return (new Gist(token)).unstar(gistID);
 }
 
-export function updateFile(gistID: string, filename: string, content: string): Promise<modules.GitHubGist> {
+export function updateFile(gistID: string, filename: string, content: string): Promise<modules.Gist> {
 	const token: string = workspace.getConfiguration('github').get('token');
 	return (new Gist(token)).updateFile(gistID, filename, content);
 }
