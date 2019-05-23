@@ -83,7 +83,7 @@ export class HistoryPanel {
 					.then(data => {
 						this.panel.webview.postMessage({
 							command: 'RETRIEVE_GIST',
-							data: data.history
+							data
 						});
 					})
 					.catch(error => {
@@ -110,7 +110,7 @@ export class HistoryPanel {
 	}
 
 	private getHtmlContent() {
-		const resourcePath = path.join(this.extensionPath, 'html/history.html');
+		const resourcePath = path.join(this.extensionPath, 'html/app.html');
 		const dirPath = path.dirname(resourcePath);
 
 		let html = fs.readFileSync(resourcePath, 'utf-8');
