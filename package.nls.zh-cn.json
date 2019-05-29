@@ -14,6 +14,7 @@
 	"extension.command.delete_gist": "删除",
 	"extension.command.star_gist": "收藏",
 	"extension.command.unstar_gist": "取消收藏",
+	"extension.command.history": "历史",
 	"extension.command.paste": "粘贴",
 	"extension.command.add_file": "新建文件",
 	"extension.command.edit_file": "编辑文件",

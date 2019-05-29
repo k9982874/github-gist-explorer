@@ -1,231 +1,268 @@
-'use strict';
+"use strict";
 
-import * as nls from 'vscode-nls';
+import * as nls from "vscode-nls";
 const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
 
-import { commands, extensions, window, workspace } from 'vscode';
-import { ConfigurationChangeEvent, Disposable, ExtensionContext, TextDocument, Uri, WebviewPanel } from 'vscode';
+import { commands, extensions, window, workspace, ConfigurationChangeEvent, ExtensionContext, TextDocument, Uri, WebviewPanel } from "vscode";
 
-import { promisify } from './promisify';
+import promisify from "./promisify";
 
-import * as constans from './constans';
-import * as filesystem from './file-system';
-import * as api from './gist-api';
-import * as modules from './modules';
+import * as clipboardy from "clipboardy";
 
-import * as clipboardy from 'clipboardy';
-import ConfigurationManager from './configuration';
+import * as constans from "./constans";
+import * as filesystem from "./filesystem";
+import * as api from "./api";
 
-import { Shortcut } from './shortcut';
-import { GistTreeProvider, GistTreeItem, GistTreeSortBy } from './tree-provider';
-import { HistoryPanel } from './history-panel';
+import { IGist, IFile } from "./modules";
 
-export class GitHubGistExplorer {
-	public readonly treeProvider: GistTreeProvider = new GistTreeProvider();
+import ConfigurationManager from "./configuration";
 
-	public readonly shortcut: Shortcut = new Shortcut();
+import GistTreeProvider, { GistTreeItem, GistTreeSortBy } from "./treeProvider";
+import HistoryPanel from "./historyPanel";
+import ShortCut from "./shortCut";
 
-	public readonly documentsSaving: Array<string> = new Array();
+import { Subscriber, Extension, Command, Event, TreeDataProvider, WebviewPanelSerializer } from "./subscriber";
 
-	public readonly executeCommand: any;
+@Extension
+export class GitHubGistExplorer extends Subscriber {
+  @TreeDataProvider("GitHubGistExplorer")
+  public readonly treeProvider: GistTreeProvider = new GistTreeProvider();
 
-	public readonly showErrorMessage: any;
-	public readonly showWarningMessage: any;
-	public readonly showInformationMessage: any;
+  public readonly shortcut: ShortCut = new ShortCut();
 
-	public readonly showInputBox: any;
-	public readonly showQuickPick: any;
-	public readonly showTextDocument: any;
-	public readonly openTextDocument: any;
+  public readonly documentsSaving: string[] = new Array();
 
-	constructor() {
-		this.executeCommand = promisify(commands.executeCommand, commands);
+  public readonly executeCommand: any;
 
-		this.showErrorMessage = promisify(window.showErrorMessage, window);
-		this.showWarningMessage = promisify(window.showWarningMessage, window);
-		this.showInformationMessage = promisify(window.showInformationMessage, window);
+  public readonly showErrorMessage: any;
+  public readonly showWarningMessage: any;
+  public readonly showInformationMessage: any;
 
-		this.showInputBox = promisify(window.showInputBox, window);
-		this.showQuickPick = promisify(window.showQuickPick, window);
-		this.showTextDocument = promisify(window.showTextDocument, window);
-		this.openTextDocument = promisify(workspace.openTextDocument, workspace);
+  public readonly showInputBox: any;
+  public readonly showQuickPick: any;
+  public readonly showTextDocument: any;
+  public readonly openTextDocument: any;
 
-		const sortBy: string = ConfigurationManager.get('sortBy');
-		const ascending: boolean = ConfigurationManager.get('ascending') === 'True';
+  @WebviewPanelSerializer("GitHubGistHistory")
+  public readonly serializer = {
+    deserializeWebviewPanel(webviewPanel: WebviewPanel, state: any): Thenable<void> {
+      HistoryPanel.currentPanel = new HistoryPanel(webviewPanel);
+      return;
+    }
+  };
 
-		this.executeCommand('setContext', 'ascending', ascending)
-			.then(() => {
-				this.treeProvider.sort(sortBy, ascending);
-				return this.treeProvider.refresh();
-			})
-			.finally(() => {
-				this.executeCommand('setContext', 'loaded', true);
-			});
-	}
+  constructor(context: ExtensionContext) {
+    super(context);
 
-	getHomeDirectory(): string {
-		const extensionPath: string = extensions.getExtension(constans.EXTENSION_ID).extensionPath;
-		const username: string = ConfigurationManager.getGitHub('username');
+    this.executeCommand = promisify(commands.executeCommand, commands);
 
-		return `${extensionPath}/${username}`;
-	}
+    this.showErrorMessage = promisify(window.showErrorMessage, window);
+    this.showWarningMessage = promisify(window.showWarningMessage, window);
+    this.showInformationMessage = promisify(window.showInformationMessage, window);
 
-	refresh() {
-		const home: string = this.getHomeDirectory();
-		filesystem.rmrf(home).finally(() => {
-			this.treeProvider.refresh();
-		});
-	}
+    this.showInputBox = promisify(window.showInputBox, window);
+    this.showQuickPick = promisify(window.showQuickPick, window);
+    this.showTextDocument = promisify(window.showTextDocument, window);
+    this.openTextDocument = promisify(workspace.openTextDocument, workspace);
+  }
 
-	sort(sortBy: string, ascending?: boolean) {
-		if (ascending === undefined) {
-			ascending = ConfigurationManager.get('ascending') === 'True';
-		}
+  getHomeDirectory(): string {
+    const extensionPath: string = extensions.getExtension(constans.EXTENSION_ID).extensionPath;
+    const username: string = ConfigurationManager.getGitHub("username");
 
-		Promise.all([
-				ConfigurationManager.set('sortBy', sortBy),
-				ConfigurationManager.set('ascending', ascending ? 'True' : 'False')
-			])
-			.then(() => {
-				this.treeProvider.sort(sortBy, ascending);
-				this.executeCommand('setContext', 'ascending', ascending);
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
+    return `${extensionPath}/${username}`;
+  }
 
-	sortByLabel() {
-		const sortBy: string = ConfigurationManager.get('sortBy')
-		if (sortBy !== GistTreeSortBy.Label) {
-			this.sort(GistTreeSortBy.Label);
-		}
-	}
+  @Command("GitHubGistExplorer.refresh")
+  refresh() {
+    const home: string = this.getHomeDirectory();
+    filesystem.rmrf(home).finally(() => {
+      this.treeProvider.refresh();
+    });
+  }
 
-	sortByLastUpdated() {
-		const sortBy: string = ConfigurationManager.get('sortBy')
-		if (sortBy !== GistTreeSortBy.LastUpdated) {
-			this.sort(GistTreeSortBy.LastUpdated);
-		}
-	}
+  sort(sortBy: string, ascending?: boolean) {
+    if (ascending === undefined) {
+      ascending = ConfigurationManager.get("ascending") === "True";
+    }
 
-	sortByCreated() {
-		const sortBy: string = ConfigurationManager.get('sortBy')
-		if (sortBy !== GistTreeSortBy.Created) {
-			this.sort(GistTreeSortBy.Created);
-		}
-	}
+    Promise.all([
+        ConfigurationManager.set("sortBy", sortBy),
+        ConfigurationManager.set("ascending", ascending ? "True" : "False")
+      ])
+      .then(() => {
+        this.treeProvider.sort(sortBy, ascending);
+        this.executeCommand("setContext", "ascending", ascending);
+      })
+      .catch(error => {
+        this.showErrorMessage(error.message);
+      });
+  }
 
-	ascending() {
-		const sortBy: string = ConfigurationManager.get('sortBy')
-		this.sort(sortBy, false);
-	}
+  @Command("GitHubGistExplorer.sortByLabel")
+  sortByLabel() {
+    const sortBy: string = ConfigurationManager.get("sortBy");
+    if (sortBy !== GistTreeSortBy.Label) {
+      this.sort(GistTreeSortBy.Label);
+    }
+  }
 
-	descending() {
-		const sortBy: string = ConfigurationManager.get('sortBy')
-		this.sort(sortBy, true);
-	}
+  @Command("GitHubGistExplorer.sortByLastUpdated")
+  sortByLastUpdated() {
+    const sortBy: string = ConfigurationManager.get("sortBy");
+    if (sortBy !== GistTreeSortBy.LastUpdated) {
+      this.sort(GistTreeSortBy.LastUpdated);
+    }
+  }
 
-	addGist() {
-		const options = {
-			prompt: localize('explorer.add_gist_description', 'Provide the description for your new gist here')
-		}
-		this.showInputBox(options)
-			.then(description => {
-				return this.showQuickPick(
-						[ constans.GistType.Public, constans.GistType.Secret ],
-						{ placeHolder: localize('explorer.add_gist_type', 'Please decide the type for your new gist')}
-					)
-					.then(type => {
-						if (!type) {
-							const msg = localize('error.gist_type_required', 'Gist type is required');
-							return Promise.reject(new Error(msg));
-						}
-						return Promise.resolve({ type, description });
-					});
-			})
-			.then(result => {
-				return api.addWaitable(result.type, result.description || '');
-			})
-			.then(() => {
-				this.treeProvider.refresh();
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
+  @Command("GitHubGistExplorer.sortByCreated")
+  sortByCreated() {
+    const sortBy: string = ConfigurationManager.get("sortBy");
+    if (sortBy !== GistTreeSortBy.Created) {
+      this.sort(GistTreeSortBy.Created);
+    }
+  }
 
-	editGist(node: GistTreeItem) {
-		const gist: modules.Gist = node.metadata as modules.Gist;
+  @Command("GitHubGistExplorer.ascending")
+  ascending() {
+    const sortBy: string = ConfigurationManager.get("sortBy");
+    this.sort(sortBy, false);
+  }
 
-		const options = {
-			value: gist.description,
-			prompt: localize('explorer.edit_gist_description', 'Provide the description for gist here')
-		}
-		this.showInputBox(options)
-			.then(value => {
-				return api.updateWaitable(gist.id, value || '');
-			})
-			.then(() => {
-				this.treeProvider.refresh();
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
+  @Command("GitHubGistExplorer.descending")
+  descending() {
+    const sortBy: string = ConfigurationManager.get("sortBy");
+    this.sort(sortBy, true);
+  }
 
-	deleteGist(node: GistTreeItem) {
-		const gist: modules.Gist = node.metadata as modules.Gist;
-		this.showWarningMessage(`Are you sure to delete gist ${node.label}?`, { modal: true }, 'Ok')
-			.then(value => {
-				if (value === 'Ok') {
-					return api.destroyWaitable(gist.id);
-				} else {
-					return Promise.resolve();
-				}
-			})
-			.then(() => {
-				const home: string = this.getHomeDirectory();
-				return filesystem.rmrf(`${home}/${gist.id}`);
-			}).then(() => {
-				this.treeProvider.refresh();
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
 
-	starGist(node: GistTreeItem) {
-		const gist: modules.Gist = node.metadata as modules.Gist;
-		api.starWaitable(gist.id)
-			.then(() => {
-				const home: string = this.getHomeDirectory();
-				return filesystem.rmrf(`${home}/${gist.id}`);
-			}).then(() => {
-				this.treeProvider.refresh();
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
+  @Command("GitHubGistExplorer.shortcut.saveIt")
+  saveIt() {
+    this.shortcut.saveIt(this.treeProvider);
+  }
 
-	unstarGist(node: GistTreeItem) {
-		const gist: modules.Gist = node.metadata as modules.Gist;
-		api.unstarWaitable(gist.id)
-			.then(() => {
-				const home: string = this.getHomeDirectory();
-				return filesystem.rmrf(`${home}/${gist.id}`);
-			}).then(() => {
-				this.treeProvider.refresh();
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
+  @Command("GitHubGistExplorer.shortcut.clipIt")
+  clipIt() {
+    this.shortcut.clipIt(this.treeProvider);
+  }
 
-	history(node: GistTreeItem) {
-		HistoryPanel.show((node.metadata as modules.Gist).id);
-		/*
+  @Command("GitHubGistExplorer.shortcut.pasteIt")
+  pasteIt() {
+    this.shortcut.pasteIt(this.treeProvider);
+  }
+
+  @Command("GitHubGistExplorer.shortcut.newGist")
+  @Command("GitHubGistExplorer.addGist")
+  addGist() {
+    const options = {
+      prompt: localize("explorer.add_gist_description", "Provide the description for your new gist here")
+    };
+    this.showInputBox(options)
+      .then(description => {
+        return this.showQuickPick(
+            [ constans.GistType.Public, constans.GistType.Secret ],
+            { placeHolder: localize("explorer.add_gist_type", "Please decide the type for your new gist")}
+          )
+          .then(type => {
+            if (!type) {
+              const msg = localize("error.gist_type_required", "Gist type is required");
+              return Promise.reject(new Error(msg));
+            }
+            return Promise.resolve({ type, description });
+          });
+      })
+      .then(result => {
+        return api.addWaitable(result.type, result.description || "");
+      })
+      .then(() => {
+        this.treeProvider.refresh();
+      })
+      .catch(error => {
+        this.showErrorMessage(error.message);
+      });
+  }
+
+  @Command("GitHubGistExplorer.editGist")
+  editGist(node: GistTreeItem) {
+    const gist: IGist = node.metadata as IGist;
+
+    const options = {
+      value: gist.description,
+      prompt: localize("explorer.edit_gist_description", "Provide the description for gist here")
+    };
+    this.showInputBox(options)
+      .then(value => {
+        return api.updateWaitable(gist.id, value || "");
+      })
+      .then(() => {
+        this.treeProvider.refresh();
+      })
+      .catch(error => {
+        this.showErrorMessage(error.message);
+      });
+  }
+
+  @Command("GitHubGistExplorer.deleteGist")
+  deleteGist(node: GistTreeItem) {
+    const gist: IGist = node.metadata as IGist;
+    this.showWarningMessage(`Are you sure to delete gist ${node.label}?`, { modal: true }, "Ok")
+      .then(value => {
+        if (value === "Ok") {
+          return api.destroyWaitable(gist.id);
+        } else {
+          return Promise.resolve();
+        }
+      })
+      .then(() => {
+        const home: string = this.getHomeDirectory();
+        return filesystem.rmrf(`${home}/${gist.id}`);
+      }).then(() => {
+        this.treeProvider.refresh();
+      })
+      .catch(error => {
+        this.showErrorMessage(error.message);
+      });
+  }
+
+  @Command("GitHubGistExplorer.starGist")
+  starGist(node: GistTreeItem) {
+    const gist: IGist = node.metadata as IGist;
+    api.starWaitable(gist.id)
+      .then(() => {
+        const home: string = this.getHomeDirectory();
+        return filesystem.rmrf(`${home}/${gist.id}`);
+      }).then(() => {
+        this.treeProvider.refresh();
+      })
+      .catch(error => {
+        this.showErrorMessage(error.message);
+      });
+  }
+
+  @Command("GitHubGistExplorer.unstarGist")
+  unstarGist(node: GistTreeItem) {
+    const gist: IGist = node.metadata as IGist;
+    api.unstarWaitable(gist.id)
+      .then(() => {
+        const home: string = this.getHomeDirectory();
+        return filesystem.rmrf(`${home}/${gist.id}`);
+      }).then(() => {
+        this.treeProvider.refresh();
+      })
+      .catch(error => {
+        this.showErrorMessage(error.message);
+      });
+  }
+
+  @Command("GitHubGistExplorer.history")
+  history(node: GistTreeItem) {
+    const a = Uri.parse("https://gist.githubusercontent.com/k9982874/8e8c6eea532283f2621fc9516330e068/raw/4d75db8c53208176a61faacacafa80bbdf598db2/extensions.json");
+    const b = Uri.parse("https://gist.githubusercontent.com/k9982874/8e8c6eea532283f2621fc9516330e068/raw/a4dbb3d5fe7d7193e3813302c8f0845a702579f1/extensions.json");
+
+    this.executeCommand("vscode.diff", a, b, "diff", { preview: true });
+
+    HistoryPanel.show((node.metadata as IGist).id);
+    /*
 		api.retrieveWaitable(gist.id)
 			.then(data => {
 				HistoryPanel.show(data);
@@ -235,262 +272,221 @@ export class GitHubGistExplorer {
 				this.showErrorMessage(error.message);
 			});
 		*/
-	}
+  }
 
-	paste(node: GistTreeItem) {
-		clipboardy.read()
-			.then(content => {
-				if (content.trim().length === 0) {
-					const msg = localize('error.empty_clipboard', 'Nothing to paste');
-					this.showInformationMessage(msg);
-				} else {
-					this.addFile(node, content);
-				}
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
+  @Command("GitHubGistExplorer.paste")
+  paste(node: GistTreeItem) {
+    clipboardy.read()
+      .then(content => {
+        if (content.trim().length === 0) {
+          const msg = localize("error.empty_clipboard", "Nothing to paste");
+          this.showInformationMessage(msg);
+        } else {
+          this.addFile(node, content);
+        }
+      })
+      .catch(error => {
+        this.showErrorMessage(error.message);
+      });
+  }
 
-	addFile(node: GistTreeItem, content?: string) {
-		const options = {
-			prompt: localize('explorer.add_file_name', 'Provide the name for new file here')
-		}
-		this.showInputBox(options)
-			.then(filename => {
-				if (!filename) {
-					const msg = localize('error.file_name_required', 'File name is required');
-					return Promise.reject(new Error(msg));
-				}
+  @Command("GitHubGistExplorer.addFile")
+  addFile(node: GistTreeItem, content?: string) {
+    const options = {
+      prompt: localize("explorer.add_file_name", "Provide the name for new file here")
+    };
+    this.showInputBox(options)
+      .then(filename => {
+        if (!filename) {
+          const msg = localize("error.file_name_required", "File name is required");
+          return Promise.reject(new Error(msg));
+        }
 
-				const gist = node.metadata as modules.Gist;
-				return api.updateFileWaitable(gist.id, filename, content === undefined ? filename : content);
-			})
-			.then(() => {
-				this.treeProvider.refresh();
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
+        const gist = node.metadata as IGist;
+        return api.updateFileWaitable(gist.id, filename, content === undefined ? filename : content);
+      })
+      .then(() => {
+        this.treeProvider.refresh();
+      })
+      .catch(error => {
+        this.showErrorMessage(error.message);
+      });
+  }
 
-	editFile(node: GistTreeItem) {
-		const file: modules.File = node.metadata as modules.File;
+  @Command("GitHubGistExplorer.editFile")
+  editFile(node: GistTreeItem) {
+    const file: IFile = node.metadata as IFile;
 
-		const home: string = this.getHomeDirectory();
-		const path: string = `${home}/${file.gistID}`;
-		const filename: string = `${path}/${file.filename}`;
+    const home: string = this.getHomeDirectory();
+    const path = `${home}/${file.gistID}`;
+    const filename = `${path}/${file.filename}`;
 
-		filesystem.exists(path)
-			.then(exists => {
-				if (exists) {
-					return Promise.resolve();
-				} else {
-					return filesystem.mkdir(path);
-				}
-			})
-			.then(() => {
-				return filesystem.exists(filename);
-			})
-			.then(exists => {
-				if (exists) {
-					const uri = Uri.file(filename);
-					return this.openTextDocument(uri);
-				} else {
-					return api.getFileWaitable(file.rawURL)
-						.then(content => {
-							if (typeof content === 'object') {
-								return filesystem.writefile(filename, JSON.stringify(content));
-							} else if (typeof content === 'string') {
-								return filesystem.writefile(filename, content);
-							} else {
-								const msg = localize('error.unknown_file_format', 'Unknown file format');
-								return Promise.reject(new Error(msg));
-							}
-						})
-						.then(() => {
-							const uri = Uri.file(filename);
-							return this.openTextDocument(uri);
-						});
-				}
-			})
-			.then(doc => {
-				this.showTextDocument(doc, { preview: true });
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
+    filesystem.exists(path)
+      .then(exists => {
+        if (exists) {
+          return Promise.resolve();
+        } else {
+          return filesystem.mkdir(path);
+        }
+      })
+      .then(() => {
+        return filesystem.exists(filename);
+      })
+      .then(exists => {
+        if (exists) {
+          const uri = Uri.file(filename);
+          return this.openTextDocument(uri);
+        } else {
+          return api.getFileWaitable(file.rawURL)
+            .then(content => {
+              if (typeof content === "object") {
+                return filesystem.writefile(filename, JSON.stringify(content));
+              } else if (typeof content === "string") {
+                return filesystem.writefile(filename, content);
+              } else {
+                const msg = localize("error.unknown_file_format", "Unknown file format");
+                return Promise.reject(new Error(msg));
+              }
+            })
+            .then(() => {
+              const uri = Uri.file(filename);
+              return this.openTextDocument(uri);
+            });
+        }
+      })
+      .then(doc => {
+        this.showTextDocument(doc, { preview: true });
+      })
+      .catch(error => {
+        this.showErrorMessage(error.message);
+      });
+  }
 
-	deleteFile(node: GistTreeItem) {
-		const file: modules.File = node.metadata as modules.File;
-		api.deleteFileWaitable(file.gistID, file.filename)
-			.then(() => {
-				const home: string = this.getHomeDirectory();
-				return filesystem.rmrf(`${home}/${file.gistID}/${file.filename}`);
-			})
-			.then(() => {
-				this.treeProvider.refresh();
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
+  @Command("GitHubGistExplorer.deleteFile")
+  deleteFile(node: GistTreeItem) {
+    const file: IFile = node.metadata as IFile;
+    api.deleteFileWaitable(file.gistID, file.filename)
+      .then(() => {
+        const home: string = this.getHomeDirectory();
+        return filesystem.rmrf(`${home}/${file.gistID}/${file.filename}`);
+      })
+      .then(() => {
+        this.treeProvider.refresh();
+      })
+      .catch(error => {
+        this.showErrorMessage(error.message);
+      });
+  }
 
-	renameFile(node: GistTreeItem) {
-		const file: modules.File = node.metadata as modules.File;
+  @Command("GitHubGistExplorer.renameFile")
+  renameFile(node: GistTreeItem) {
+    const file: IFile = node.metadata as IFile;
 
-		const options = {
-			value: file.filename,
-			prompt: localize('explorer.rename_file_name', 'Provide the name for file here')
-		}
-		this.showInputBox(options)
-			.then(value => {
-				if (!value) {
-					const msg = localize('error.file_name_required', 'File name is required');
-					return Promise.reject(new Error(msg));
-				}
-				return api.renameFileWaitable(file.gistID, file.filename, value);
-			})
-			.then(() => {
-				const home: string = this.getHomeDirectory();
-				return filesystem.rmrf(`${home}/${file.gistID}/${file.filename}`);
-			})
-			.then(() => {
-				this.treeProvider.refresh();
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-	}
+    const options = {
+      value: file.filename,
+      prompt: localize("explorer.rename_file_name", "Provide the name for file here")
+    };
+    this.showInputBox(options)
+      .then(value => {
+        if (!value) {
+          const msg = localize("error.file_name_required", "File name is required");
+          return Promise.reject(new Error(msg));
+        }
+        return api.renameFileWaitable(file.gistID, file.filename, value);
+      })
+      .then(() => {
+        const home: string = this.getHomeDirectory();
+        return filesystem.rmrf(`${home}/${file.gistID}/${file.filename}`);
+      })
+      .then(() => {
+        this.treeProvider.refresh();
+      })
+      .catch(error => {
+        this.showErrorMessage(error.message);
+      });
+  }
 
-	reloadFile(node: GistTreeItem) {
-		const file: modules.File = node.metadata as modules.File;
+  @Command("GitHubGistExplorer.reloadFile")
+  reloadFile(node: GistTreeItem) {
+    const file: IFile = node.metadata as IFile;
 
-		const home: string = this.getHomeDirectory();
-		const path: string = `${home}/${file.gistID}`;
-		const filename: string = `${path}/${file.filename}`;
+    const home: string = this.getHomeDirectory();
+    const path = `${home}/${file.gistID}`;
+    const filename = `${path}/${file.filename}`;
 
-		api.getFileWaitable(file.rawURL)
-			.then(content => {
-				if (typeof content === 'object') {
-					return filesystem.writefile(filename, JSON.stringify(content));
-				} else if (typeof content === 'string') {
-					return filesystem.writefile(filename, content);
-				} else {
-					const msg = localize('error.unknown_file_format', 'Unknown file format');
-					return Promise.reject(new Error(msg));
-				}
-			})
-			.then(() => {
-				const uri = Uri.file(filename);
-				return this.openTextDocument(uri);
-			});
-	}
+    api.getFileWaitable(file.rawURL)
+      .then(content => {
+        if (typeof content === "object") {
+          return filesystem.writefile(filename, JSON.stringify(content));
+        } else if (typeof content === "string") {
+          return filesystem.writefile(filename, content);
+        } else {
+          const msg = localize("error.unknown_file_format", "Unknown file format");
+          return Promise.reject(new Error(msg));
+        }
+      })
+      .then(() => {
+        const uri = Uri.file(filename);
+        return this.openTextDocument(uri);
+      });
+  }
 
-	onDidChangeConfiguration(event: ConfigurationChangeEvent) {
-		if (ConfigurationManager.affects(event)) {
-			const home: string = this.getHomeDirectory();
-			filesystem.rmrf(home).finally(() => {
-				this.treeProvider.refresh();
-			});
-		}
-	}
+  @Event("onDidChangeConfiguration")
+  didChangeConfigurationHandle(event: ConfigurationChangeEvent) {
+    if (ConfigurationManager.affects(event)) {
+      const home: string = this.getHomeDirectory();
+      filesystem.rmrf(home).finally(() => {
+        this.treeProvider.refresh();
+      });
+    }
+  }
 
-	onDidSaveTextDocument(doc: TextDocument) {
-		const home: string = this.getHomeDirectory();
-		if (!doc.fileName.startsWith(home)) {
-			return;
-		}
+  @Event("onDidSaveTextDocument")
+  didSaveTextDocumentHandle(doc: TextDocument) {
+    const home: string = this.getHomeDirectory();
+    if (!doc.fileName.startsWith(home)) {
+      return;
+    }
 
-		const filename: string = doc.fileName.slice(home.length + 1);
+    const filename: string = doc.fileName.slice(home.length + 1);
 
-		const [ gistID, name ] = filename.split('/');
-		if (!gistID || !name) {
-			return;
-		}
+    const [ gistID, name ] = filename.split("/");
+    if (!gistID || !name) {
+      return;
+    }
 
-		const fileIndex = this.documentsSaving.indexOf(filename);
-		if (fileIndex !== -1) {
-			return;
-		}
+    const fileIndex = this.documentsSaving.indexOf(filename);
+    if (fileIndex !== -1) {
+      return;
+    }
 
-		this.documentsSaving.push(filename);
+    this.documentsSaving.push(filename);
 
-		api.updateFileWaitable(gistID, name, doc.getText())
-			.catch(error => {
-				this.showErrorMessage(error.message);
-				return Promise.resolve();
-			})
-			.finally(() => {
-				this.documentsSaving.splice(fileIndex, 1);
-			});
-	}
-}
-
-export class GitHubGistExplorerSubscriber {
-	public readonly disposables: Array<Disposable> = new Array();
-
-	public register(func: (...argArray: any[]) => Disposable, thisArg?: any, ...argArray: any[]) {
-		const d: Disposable = func.call(thisArg, ...argArray);
-		this.disposables.push(d);
-	}
-
-	public dispose(): void {
-		this.disposables.forEach((cmd: Disposable) => {
-			cmd.dispose();
-		});
-		this.disposables.splice(0, this.disposables.length);
-	}
+    api.updateFileWaitable(gistID, name, doc.getText())
+      .catch(error => {
+        this.showErrorMessage(error.message);
+        return Promise.resolve();
+      })
+      .finally(() => {
+        this.documentsSaving.splice(fileIndex, 1);
+      });
+  }
 }
 
 export function activate(context: ExtensionContext) {
-	const explorer = new GitHubGistExplorer();
+  const explorer = new GitHubGistExplorer(context);
 
-	const subscriber = new GitHubGistExplorerSubscriber();
+  const sortBy: string = ConfigurationManager.get("sortBy");
+  const ascending: boolean = ConfigurationManager.get("ascending") === "True";
 
-	// **********************************************************************
-	// provider
-	subscriber.register(window.registerTreeDataProvider, window, 'GitHubGistExplorer', explorer.treeProvider);
-	if (window.registerWebviewPanelSerializer) {
-		window.registerWebviewPanelSerializer(HistoryPanel.viewType, HistoryPanel.serializer);
-	}
-	// **********************************************************************
+  explorer.executeCommand("setContext", "ascending", ascending)
+    .then(() => {
+      explorer.treeProvider.sort(sortBy, ascending);
+      return explorer.treeProvider.refresh();
+    })
+    .finally(() => {
+      explorer.executeCommand("setContext", "loaded", true);
+    });
 
-	// **********************************************************************
-	// commands
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.shortcut.newGist', explorer.addGist.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.shortcut.saveIt', explorer.shortcut.saveIt.bind(explorer.shortcut, explorer.treeProvider));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.shortcut.clipIt', explorer.shortcut.clipIt.bind(explorer.shortcut, explorer.treeProvider));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.shortcut.pasteIt', explorer.shortcut.pasteIt.bind(explorer.shortcut, explorer.treeProvider));
-
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.refresh', explorer.refresh.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.sortByLabel', explorer.sortByLabel.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.sortByLastUpdated', explorer.sortByLastUpdated.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.sortByCreated', explorer.sortByCreated.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.ascending', explorer.ascending.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.descending', explorer.descending.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.addGist', explorer.addGist.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.editGist', explorer.editGist.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.deleteGist', explorer.deleteGist.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.starGist', explorer.starGist.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.unstarGist', explorer.unstarGist.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.history', explorer.history.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.paste', explorer.paste.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.addFile', explorer.addFile.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.editFile', explorer.editFile.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.deleteFile', explorer.deleteFile.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.renameFile', explorer.renameFile.bind(explorer));
-	subscriber.register(commands.registerCommand, commands, 'GitHubGistExplorer.reloadFile', explorer.reloadFile.bind(explorer));
-	// **********************************************************************
-
-	// **********************************************************************
-	// listener
-	subscriber.register(workspace.onDidChangeConfiguration, workspace, explorer.onDidChangeConfiguration.bind(explorer));
-	subscriber.register(workspace.onDidSaveTextDocument, workspace, explorer.onDidSaveTextDocument.bind(explorer));
-	// **********************************************************************
-
-	context.subscriptions.push(subscriber);
-
-	return explorer;
+  return explorer;
 }

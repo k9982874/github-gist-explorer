@@ -9,7 +9,10 @@
 		],
 		"sourceMap": true,
 		"rootDir": "src",
-		"experimentalDecorators": true
+		"allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true
 	},
-	"exclude": ["node_modules", ".vscode", ".vscode-test", "web"]
+	"include": [
+		"../src/modules/index.ts"
+	]
 }

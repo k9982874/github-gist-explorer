@@ -1,3 +1,6 @@
 .vscode
-out
+.gitignore
 node_modules
+dist
+out
+media

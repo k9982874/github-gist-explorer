@@ -14,6 +14,7 @@
 	"extension.command.delete_gist": "Delete Gist",
 	"extension.command.star_gist": "Star Gist",
 	"extension.command.unstar_gist": "Unstar Gist",
+	"extension.command.history": "History",
 	"extension.command.paste": "Paste",
 	"extension.command.add_file": "Add File",
 	"extension.command.edit_file": "Edit File",

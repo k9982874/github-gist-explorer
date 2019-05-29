@@ -3,7 +3,7 @@
 	"displayName": "Github Gist Explorer",
 	"description": "Management your GitHub Gists with Visual Studio Code",
 	"version": "0.1.0",
-	"icon": "media/icon.png",
+	"icon": "media/static/img/icon.png",
 	"publisher": "k9982874",
 	"author": {
 		"name": "Kevin Chou",
@@ -32,14 +32,14 @@
 		"onView:GitHubGistExplorer",
 		"onView:GitHubGistHistory"
 	],
-	"main": "./out/extension.js",
+	"main": "./dist/extension.js",
 	"contributes": {
 		"viewsContainers": {
 			"activitybar": [
 				{
 					"id": "github-gist-explorer",
 					"title": "GitHub Gist Explorer",
-					"icon": "media/github.svg"
+					"icon": "media/static/img/github.svg"
 				}
 			]
 		},
@@ -379,37 +379,60 @@
 		]
 	},
 	"scripts": {
-		"watch": "tsc -b -w",
-		"compile": "tsc -b",
-		"clean": "gulp clean",
-		"package": "gulp package",
-		"publish": "gulp publish",
-		"postinstall": "node ./node_modules/vscode/bin/install"
+		"watch": "./node_modules/.bin/webpack --mode none --config ./webpack.config.js --watch",
+		"compile": "./node_modules/.bin/webpack --mode none --config ./webpack.config.js",
+		"build": "./node_modules/.bin/webpack --mode production --config ./webpack.config.js",
+		"package": "./node_modules/.bin/vsce package",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"webpack": "./node_modules/.bin/webpack --config ./web/build/webpack.config.prod.js",
+		"webpack-dev-server": "./node_modules/.bin/webpack-dev-server --config ./web/build/webpack.config.dev.js"
 	},
 	"devDependencies": {
 		"@types/mkdirp": "^0.5.2",
 		"@types/node": "*",
 		"@types/rimraf": "^2.0.2",
-		"del": "^4.1.1",
-		"event-stream": "^4.0.1",
-		"gulp": "^4.0.2",
-		"gulp-filter": "^5.1.0",
-		"gulp-sourcemaps": "^2.6.5",
-		"gulp-typescript": "^5.0.1",
-		"run-sequence": "^2.2.1",
-		"ts-loader": "^6.0.0",
-		"tslint": "^5.11.0",
+		"copy-webpack-plugin": "^5.0.3",
+		"css-loader": "^2.1.1",
+		"html-webpack-plugin": "^3.2.0",
+		"mini-css-extract-plugin": "^0.6.0",
+		"optimize-css-assets-webpack-plugin": "^5.0.1",
+		"style-loader": "^0.23.1",
+		"stylus": "^0.54.5",
+		"stylus-loader": "^3.0.2",
+		"terser-webpack-plugin": "^1.2.4",
+		"ts-loader": "^6.0.1",
+		"tslint": "^5.16.0",
+		"tslint-webpack-plugin": "^2.0.4",
 		"typescript": "^3.4.5",
+		"url-loader": "^1.1.2",
 		"vsce": "^1.61.0",
 		"vscode": "^1.1.22",
-		"vscode-nls-dev": "^3.2.6"
+		"vscode-nls-dev": "^3.2.6",
+		"vue": "^2.6.10",
+		"vue-loader": "^15.7.0",
+		"vue-property-decorator": "^8.1.1",
+		"vue-server-renderer": "^2.6.10",
+		"vue-style-loader": "^4.1.2",
+		"vue-template-compiler": "^2.6.10",
+		"vuex-class": "^0.3.2",
+		"vuex-module-decorators": "^0.9.9",
+		"webpack": "^4.32.2",
+		"webpack-cli": "^3.3.2",
+		"webpack-dev-server": "^3.4.1",
+		"webpack-merge": "^4.2.1"
 	},
 	"dependencies": {
 		"axios": "^0.18.0",
+		"bootstrap": "^4.3.1",
+		"bootstrap-vue": "^2.0.0-rc.20",
 		"clipboardy": "^2.0.0",
+		"diff": "^4.0.1",
+		"jquery": "^1.9.1",
 		"mkdirp": "^0.5.1",
 		"moment": "^2.24.0",
 		"rimraf": "^2.6.2",
-		"vscode-nls": "^4.1.0"
+		"vscode-nls": "^4.1.0",
+		"vue-router": "^3.0.6",
+		"vuex": "^3.1.1"
 	}
 }
