@@ -1,11 +1,11 @@
-import * as nls from "vscode-nls";
-const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
+import i18n from "./i18n";
 
-import { commands, window } from "vscode";
-
-import * as clipboardy from "clipboardy";
+import { window } from "vscode";
+import { VSCode } from "./promisify";
 
 import * as path from "path";
+
+import * as clipboardy from "clipboardy";
 
 import * as constans from "./constans";
 import * as api from "./api";
@@ -21,25 +21,25 @@ export default class ShortCut {
   private save(config: IConfiguration, content: string, filename?: string): Promise<IGist> {
     return api.listWaitable(config.gitHub.username)
       .then(results => {
-        return window.showQuickPick<IGist>(
+        return VSCode.showQuickPick<IGist>(
           [ ...results, new GistModule() ],
-          { placeHolder: localize("explorer.pick_gist", "Please pick a gist to add")}
+          { placeHolder: i18n("explorer.pick_gist")}
         );
       })
-      .then(gist => {
+      .then((gist: IGist) => {
         if (gist === undefined) {
-          const msg = localize("error.gist_required", "Please pick a gist");
+          const msg = i18n("error.gist_required");
           return Promise.reject(new Error(msg));
         }
 
         const options = {
           value: filename === undefined ? "" : path.basename(filename),
-          prompt: localize("explorer.add_file_name", "Provide the name for new file here")
+          prompt: i18n("explorer.add_file_name")
         };
-        return window.showInputBox(options)
+        return VSCode.showInputBox(options)
           .then(filename => {
             if (!filename) {
-              const msg = localize("error.file_name_required", "File name is required");
+              const msg = i18n("error.file_name_required");
               return Promise.reject(new Error(msg));
             }
             return Promise.resolve([ gist.id, filename ]);
@@ -48,22 +48,22 @@ export default class ShortCut {
       .then(results => {
         const [ gistID, filename ] = results;
 
-        if (gistID !== undefined) {
+        if (gistID) {
           return api.updateFileWaitable(gistID, filename, content);
         }
 
         const options = {
-          prompt: localize("explorer.add_gist_description", "Provide the description for your new gist here")
+          prompt: i18n("explorer.add_gist_description")
         };
-        return window.showInputBox(options)
+        return VSCode.showInputBox(options)
           .then(description => {
-            return window.showQuickPick(
+            return VSCode.showQuickPick(
               [ constans.GistType.Public, constans.GistType.Secret ],
-              { placeHolder: localize("explorer.add_gist_type", "Please decide the type for your new gist")}
+              { placeHolder: i18n("explorer.add_gist_type")}
             )
             .then(type => {
               if (!type) {
-                const msg = localize("error.gist_type_required", "Gist type is required");
+                const msg = i18n("error.gist_type_required");
                 return Promise.reject(new Error(msg));
               }
               return Promise.resolve({ type, description });
@@ -82,15 +82,15 @@ export default class ShortCut {
   saveIt(treeProvider: GistTreeProvider) {
     const editor = window.activeTextEditor;
     if (!editor) {
-      const msg = localize("error.open_file", "Forget open a file?");
-      window.showInformationMessage(msg);
+      const msg = i18n("error.open_file");
+      VSCode.showInformationMessage(msg);
       return;
     }
 
     const content = editor.document.getText();
     if (content.trim().length === 0) {
-      const msg = localize("error.empty_file", "Can't save an empty file");
-      window.showInformationMessage(msg);
+      const msg = i18n("error.empty_file");
+      VSCode.showInformationMessage(msg);
       return;
     }
 
@@ -101,28 +101,28 @@ export default class ShortCut {
             treeProvider.refresh();
           })
           .catch(error => {
-            window.showErrorMessage(error.message);
+            VSCode.showErrorMessage(error.message);
             return Promise.resolve();
           });
       })
       .catch(error => {
-        window.showInformationMessage(error.message);
-        commands.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
+        VSCode.showInformationMessage(error.message);
+        VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
       });
   }
 
   clipIt(treeProvider: GistTreeProvider) {
     const editor = window.activeTextEditor;
     if (!editor) {
-      const msg = localize("explorer.open_file", "Forget open a file?");
-      window.showInformationMessage(msg);
+      const msg = i18n("error.open_file");
+      VSCode.showInformationMessage(msg);
       return;
     }
 
     const content = editor.selection.isEmpty ? editor.document.getText() : editor.document.getText(editor.selection);
     if (content.trim().length === 0) {
-      const msg = localize("error.empty_selection", "Select some text please");
-      window.showInformationMessage(msg);
+      const msg = i18n("error.empty_selection");
+      VSCode.showInformationMessage(msg);
       return;
     }
 
@@ -133,13 +133,13 @@ export default class ShortCut {
             treeProvider.refresh();
           })
           .catch(error => {
-            window.showErrorMessage(error.message);
+            VSCode.showErrorMessage(error.message);
             return Promise.resolve();
           });
       })
       .catch(error => {
-        window.showInformationMessage(error.message);
-        commands.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
+        VSCode.showInformationMessage(error.message);
+        VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
       });
   }
 
@@ -147,7 +147,7 @@ export default class ShortCut {
     clipboardy.read()
       .then(content => {
         if (content.trim().length === 0) {
-          const msg = localize("error.empty_clipboard", "Nothing to paste");
+          const msg = i18n("error.empty_clipboard");
           return Promise.reject(new Error(msg));
         }
 
@@ -158,18 +158,18 @@ export default class ShortCut {
                 treeProvider.refresh();
               })
               .catch(error => {
-                window.showErrorMessage(error.message);
+                VSCode.showErrorMessage(error.message);
                 return Promise.resolve();
               });
           })
           .catch(error => {
-            window.showInformationMessage(error.message);
-            commands.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
+            VSCode.showInformationMessage(error.message);
+            VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
             return Promise.resolve();
           });
       })
       .catch(error => {
-        window.showInformationMessage(error.message);
+        VSCode.showInformationMessage(error.message);
       });
   }
 }

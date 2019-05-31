@@ -1,9 +1,9 @@
 import { IChangeStatus } from ".";
 
 export default class ChangeStatusModule implements IChangeStatus {
-  total: number;
-  additions: number;
-  deletions: number;
+  total = 0;
+  additions = 0;
+  deletions = 0;
 
   constructor(data?: any) {
     if (data) {

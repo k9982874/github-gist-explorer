@@ -1,12 +1,12 @@
 import { IFile } from ".";
 
 export default class FileModule implements IFile {
-  gistID: string;
-  filename: string;
-  type: string;
-  language: string;
-  rawURL: string;
-  size: number;
+  gistID = "";
+  filename = "";
+  type = "";
+  language = "";
+  rawURL = "";
+  size = 0;
 
   constructor(gistID?: string, data?: any) {
     this.gistID = gistID;

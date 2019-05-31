@@ -1,55 +1,72 @@
-import * as moment from 'moment';
+import { Module, VuexModule, Mutation } from "vuex-module-decorators";
 
-import { Module, VuexModule, Mutation, Action } from 'vuex-module-decorators';
-
-import { IFile, IHistory, IGist, IUser } from '../../../src/modules';
+import { IFile, IHistory, IGist, IUser, HistoryStatus } from "../../../src/modules";
 
 @Module({ namespaced: true })
 export default class GistModule extends VuexModule implements IGist {
-	id: string = '';
-	label: string = '';
-	nodeID: string = '';
-	url: string = '';
-	forksURL: string = '';
-	commitsURL: string = '';
-	gitPullURL: string = '';
-	gitPushURL: string = '';
-	htmlURL: string = '';
-	files: Array<IFile> = [];
-	public: string = '';
-	createdAt: moment.Moment = null;
-	updatedAt: moment.Moment = null;
-	description: string = '';
-	comments: string = '';
-	user: IUser = null;
-	commentsURL: string = '';
-	owner: IUser = null;
-	history: Array<IHistory> = [];
-	truncated: boolean;
+  id = "";
+  label = "";
+  nodeID = "";
+  url = "";
+  forksURL = "";
+  commitsURL = "";
+  gitPullURL = "";
+  gitPushURL = "";
+  htmlURL = "";
+  files: IFile[] = [];
+  public = "";
+  createdAt = "";
+  updatedAt = "";
+  description = "";
+  comments = "";
+  user?: IUser;
+  commentsURL = "";
+  owner?: IUser;
+  history: IHistory[] = [];
+  truncated = false;
 
   @Mutation
-  update(data) {
-    this.id = data.id;
-    this.label = data.label;
-    this.nodeID = data.nodeID;
-    this.url = data.url;
-    this.forksURL = data.forksURL;
-    this.commitsURL = data.commitsURL;
-    this.gitPullURL = data.gitPullURL;
-    this.gitPushURL = data.gitPushURL;
-    this.htmlURL = data.htmlURL;
-    this.files = data.files.map(v => {
-      return {...v, ...{ committedAt: moment(v.committedAt) }};
-    });
-    this.public = data.public;
-    this.createdAt = moment(data.createdAt);
-    this.updatedAt = moment(data.updatedAt);
-    this.description = data.description;
-    this.comments = data.comments;
-    this.user = data.user;
-    this.commentsURL = data.commentsURL;
-    this.owner = data.owner;
-    this.history = data.history;
-    this.truncated = data.truncated;
+  update(data: any) {
+    const { version, gist } = data;
+
+    const item = this.history.find(v => v.version === version);
+    if (item !== undefined) {
+      item.gist = gist;
+      item.status = HistoryStatus.Done;
+      return;
+    }
+
+    this.id = gist.id;
+    this.label = gist.label;
+    this.nodeID = gist.nodeID;
+    this.url = gist.url;
+    this.forksURL = gist.forksURL;
+    this.commitsURL = gist.commitsURL;
+    this.gitPullURL = gist.gitPullURL;
+    this.gitPushURL = gist.gitPushURL;
+    this.htmlURL = gist.htmlURL;
+    this.files = gist.files || [];
+    this.public = gist.public;
+    this.createdAt = gist.createdAt;
+    this.updatedAt = gist.updatedAt;
+    this.description = gist.description;
+    this.comments = gist.comments;
+    this.user = gist.user;
+    this.commentsURL = gist.commentsURL;
+    this.owner = gist.owner;
+    this.history = gist.history || [];
+    this.truncated = gist.truncated;
   }
+
+  @Mutation
+  loading(data: any) {
+    const { version } = data;
+
+    const item = this.history.find(v => v.version === version);
+    if (item !== undefined) {
+      item.status = HistoryStatus.Loading;
+      return;
+    }
+  }
+
 }

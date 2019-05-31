@@ -32,7 +32,6 @@ module.exports = {
       exclude: [/(\.d\.ts)/],
       loader: 'ts-loader',
       options: {
-        configFile: utils.resolve('tsconfig.json'),
         transpileOnly: true,
         appendTsSuffixTo: [/\.vue$/]
       }

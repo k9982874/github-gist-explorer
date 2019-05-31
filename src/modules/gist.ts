@@ -1,31 +1,29 @@
-import * as moment from "moment";
-
 import { IGist, IFile, IUser, IHistory } from ".";
 import UserModule from "./user";
 import FileModule from "./file";
 import HistoryModule from "./history";
 
 export default class GistModule implements IGist {
-  id: string;
-  label: string;
-  nodeID: string;
-  url: string;
-  forksURL: string;
-  commitsURL: string;
-  gitPullURL: string;
-  gitPushURL: string;
-  htmlURL: string;
-  files: IFile[];
-  public: string;
-  createdAt: string;
-  updatedAt: string;
-  description: string;
-  comments: string;
-  user: IUser;
-  commentsURL: string;
-  owner: IUser;
-  history: IHistory[];
-  truncated: boolean;
+  id = "";
+  label = "";
+  nodeID = "";
+  url = "";
+  forksURL = "";
+  commitsURL = "";
+  gitPullURL = "";
+  gitPushURL = "";
+  htmlURL = "";
+  files: IFile[] = [];
+  public = "";
+  createdAt = "";
+  updatedAt = "";
+  description = "";
+  comments = "";
+  user?: IUser;
+  commentsURL = "";
+  owner?: IUser;
+  history: IHistory[] = [];
+  truncated = false;
 
   constructor(data?: any) {
     if (data) {

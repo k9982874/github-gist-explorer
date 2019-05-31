@@ -1,7 +1,6 @@
-import * as nls from "vscode-nls";
-const localize = nls.loadMessageBundle();
+import i18n from "./i18n";
 
-import * as vscode from "vscode";
+import { CancellationToken } from "vscode";
 
 import * as fs from "fs";
 import * as mkdirp from "mkdirp";
@@ -15,9 +14,9 @@ function handleResult<T>(resolve: (result: T) => void, reject: (error: Error) =>
   }
 }
 
-export function checkCancellation(token: vscode.CancellationToken): void {
+export function checkCancellation(token: CancellationToken): void {
   if (token.isCancellationRequested) {
-    const msg = localize("error.operation_cancelled", "Operation cancelled");
+    const msg = i18n("error.operation_cancelled");
     throw new Error(msg);
   }
 }

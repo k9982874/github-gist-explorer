@@ -1,4 +1,0 @@
-{
-	"error.github_username_missing": "请先设置GitHub用户名",
-	"error.github_token_missing": "请先设置GitHub令牌"
-}

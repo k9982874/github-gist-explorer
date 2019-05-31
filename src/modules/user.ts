@@ -1,24 +1,24 @@
 import { IUser } from ".";
 
 export default class UserModule implements IUser {
-  login: string;
-  id: number;
-  nodeID: string;
-  avatarURL: string;
-  gravatarID: string;
-  url: string;
-  htmlURL: string;
-  followersURL: string;
-  followingURL: string;
-  gistsURL: string;
-  starredURL: string;
-  subscriptionsURL: string;
-  organizationsURL: string;
-  reposURL: string;
-  eventsURL: string;
-  receivedEventsURL: string;
-  type: string;
-  siteAdmin: boolean;
+  login = "";
+  id = 0;
+  nodeID = "";
+  avatarURL = "";
+  gravatarID = "";
+  url = "";
+  htmlURL = "";
+  followersURL = "";
+  followingURL = "";
+  gistsURL = "";
+  starredURL = "";
+  subscriptionsURL = "";
+  organizationsURL = "";
+  reposURL = "";
+  eventsURL = "";
+  receivedEventsURL = "";
+  type = "";
+  siteAdmin = false;
 
   constructor(data?: any) {
     if (data) {

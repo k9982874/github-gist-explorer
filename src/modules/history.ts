@@ -1,17 +1,21 @@
-import * as moment from "moment";
-
-import { IHistory, IUser, IChangeStatus } from ".";
+import { IHistory, IUser, HistoryStatus } from ".";
 import UserModule from "./user";
 import ChangeStatusModule from "./changeStatus";
 
 export default class HistoryModule implements IHistory {
-  user: IUser;
-  version: string;
-  committedAt: string;
-  changeStatus: IChangeStatus;
-  url: string;
+  user?: IUser;
+  version = "";
+  committedAt = "";
+  changeStatus = {
+    total: 0,
+    additions: 0,
+    deletions: 0
+  };
+  url = "";
+  status =  HistoryStatus.Unknown;
 
   constructor(data?: any) {
+
     if (data) {
       this.user = new UserModule(data.user);
       this.version = data.version;

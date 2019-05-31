@@ -1,5 +1,4 @@
-import * as nls from "vscode-nls";
-const localize = nls.loadMessageBundle();
+import i18n from "./i18n";
 
 import { workspace, ConfigurationChangeEvent, ConfigurationTarget } from "vscode";
 
@@ -21,13 +20,13 @@ export class ConfigurationManager {
   check(): Promise<IConfiguration> {
     const username: string = this.getGitHub("username") || "";
     if (username.length === 0) {
-      const msg = localize("error.github_username_missing", "Please specify the username of GitHub.");
+      const msg = i18n("error.github_username_missing");
       return Promise.reject(new Error(msg));
     }
 
     const token: string = this.getGitHub("token") || "";
     if (token.length === 0) {
-      const msg = localize("error.github_token_missing", "Please specify the token of GitHub.");
+      const msg = i18n("error.github_token_missing");
       return Promise.reject(new Error(msg));
     }
 

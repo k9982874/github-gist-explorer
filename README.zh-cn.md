@@ -15,6 +15,9 @@
 6. 支持从活动的编辑器直接创建gist。
 7. 支持从选定文本创建gist。
 8. 支持从剪切板创建gist。
+9. 支持在Visual Studio Code中查看Gist历史。
+10. 支持查看历史文件内容。
+11. 支持历史文件与当前版本对比。
 ```
 
 ## 使用说明
@@ -53,3 +56,6 @@ Github Gist Explorer需要GitHub用户名和GitHub令牌来访问你的GitHub Gi
 1. 在命令面板中运行命令。
 2. 使用右键菜单。
 ![Paste](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/paste.gif)
+
+## 查看历史
+![History](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/history.gif)

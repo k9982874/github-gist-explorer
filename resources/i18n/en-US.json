@@ -1,0 +1,41 @@
+{
+  "error": {
+    "empty_clipboard": "Nothing to paste",
+    "empty_file": "Can't save an empty file",
+    "empty_selection": "Select some text please",
+    "file_name_required": "File name is required",
+    "gist_required": "Please pick a gist",
+    "gist_type_required": "Gist type is required",
+    "github_token_missing": "Please specify the token of GitHub.",
+    "github_username_missing": "Please specify the username of GitHub.",
+    "open_file": "Forget open a file?",
+    "operation_cancelled": "Operation cancelled",
+    "unknown_file_format": "Unknown file format"
+  },
+  "explorer": {
+    "add_file_name": "Provide the name for new file here",
+    "add_gist_description": "Provide the description for your new gist here",
+    "add_gist_type": "Please decide the type for your new gist",
+    "creating_gist": "Creating gist...",
+    "compare_file": "Compare with the lastest version",
+    "deleting_file": "Deleting file...",
+    "deleting_file_confirmation": "Are you sure to delete file %s?",
+    "deleting_gist": "Deleting gist...",
+    "deleting_gist_confirmation": "Are you sure to delete gist %s?",
+    "downloading_file": "Downloading file...",
+    "edit_gist_description": "Provide the description for gist here",
+    "listing_gist": "Listing gist...",
+    "listing_starred_gist": "Listing starred gist...",
+    "view_file": "View file contents",
+    "pick_gist": "Please pick a gist to add",
+    "public": "Public",
+    "rename_file_name": "Provide the name for file here",
+    "renaming_file": "Renaming file...",
+    "retrieve_gist": "Retrieve gist...",
+    "secret": "Secret",
+    "star_gist": "Staring gist...",
+    "unstar_gist": "Unstaring gist...",
+    "updating_file": "Updating file...",
+    "updating_gist": "Updating gist..."
+  }
+}

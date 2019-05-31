@@ -1,6 +1,3 @@
-import * as nls from "vscode-nls";
-const localize = nls.loadMessageBundle();
-
 import { workspace } from "vscode";
 
 import axios, { AxiosRequestConfig } from "axios";
@@ -11,6 +8,8 @@ import * as constans from "./constans";
 
 import { IGist } from "./modules";
 import GistModule from "./modules/gist";
+
+import i18n from "./i18n";
 
 export interface INewFile {
   name: string;
@@ -241,7 +240,7 @@ export default class API {
 
     const data = {
       files: {
-        [filename]: undefined
+        [filename]: null
       },
       gist_id: gistID
     };
@@ -279,18 +278,18 @@ export default class API {
   }
 }
 
-export const getFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.downloading_file", "Downloading file...")}`, getFile);
-export const listWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.listing_gist", "Listing gist...")}`, list);
-export const listStarredWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.listing_starred_gist", "Listing starred gist...")}`, listStarred);
-export const addWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.creating_gist", "Creating gist...")}`, add);
-export const retrieveWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.retrieve_gist", "Retrieve gist...")}`, retrieve);
-export const updateWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.updating_gist", "Updating gist...")}`, update);
-export const destroyWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.deleting_gist", "Deleting gist...")}`, destroy);
-export const starWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.star_gist", "Staring gist...")}`, star);
-export const unstarWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.unstar_gist", "Unstaring gist...")}`, unstar);
-export const updateFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.updating_file", "Updating file...")}`, updateFile);
-export const deleteFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.deleting_file", "Deleting file...")}`, deleteFile);
-export const renameFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${localize("explorer.renaming_file", "Renaming file...")}`, renameFile);
+export const getFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.downloading_file")}`, getFile);
+export const listWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.listing_gist")}`, list);
+export const listStarredWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.listing_starred_gist")}`, listStarred);
+export const addWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.creating_gist")}`, add);
+export const retrieveWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.retrieve_gist")}`, retrieve);
+export const updateWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.updating_gist")}`, update);
+export const destroyWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.deleting_gist")}`, destroy);
+export const starWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.star_gist")}`, star);
+export const unstarWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.unstar_gist")}`, unstar);
+export const updateFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.updating_file")}`, updateFile);
+export const deleteFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.deleting_file")}`, deleteFile);
+export const renameFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.renaming_file")}`, renameFile);
 
 export function getFile(url: string): Promise<any> {
   const token: string = workspace.getConfiguration("github").get("token");

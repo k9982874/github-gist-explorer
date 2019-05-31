@@ -1,11 +1,12 @@
 "use strict";
 
-import * as nls from "vscode-nls";
-const localize = nls.config({ messageFormat: nls.MessageFormat.file })();
+import i18n from "./i18n";
 
-import { commands, extensions, window, workspace, ConfigurationChangeEvent, ExtensionContext, TextDocument, Uri, WebviewPanel } from "vscode";
+import { extensions, ConfigurationChangeEvent, ExtensionContext, TextDocument, Uri } from "vscode";
 
-import promisify from "./promisify";
+import { Subscriber, Extension, Command, Event, TextDocumentContentProvider, TreeDataProvider, WebviewPanel } from "vscode-extension-decorator";
+
+import { VSCode } from "./promisify";
 
 import * as clipboardy from "clipboardy";
 
@@ -17,53 +18,29 @@ import { IGist, IFile } from "./modules";
 
 import ConfigurationManager from "./configuration";
 
-import GistTreeProvider, { GistTreeItem, GistTreeSortBy } from "./treeProvider";
-import HistoryPanel from "./historyPanel";
 import ShortCut from "./shortCut";
 
-import { Subscriber, Extension, Command, Event, TreeDataProvider, WebviewPanelSerializer } from "./subscriber";
+import ContentProvider from "./contentProvider";
+import GistTreeProvider, { GistTreeItem, GistTreeSortBy } from "./treeProvider";
+import HistoryViewProvider from "./historyProvider";
 
 @Extension
 export class GitHubGistExplorer extends Subscriber {
+  @TextDocumentContentProvider("GitHubGistContent")
+  public readonly contentProvider: ContentProvider = new ContentProvider();
+
   @TreeDataProvider("GitHubGistExplorer")
   public readonly treeProvider: GistTreeProvider = new GistTreeProvider();
+
+  @WebviewPanel("GitHubGistHistory")
+  public readonly historyView: HistoryViewProvider = new HistoryViewProvider();
 
   public readonly shortcut: ShortCut = new ShortCut();
 
   public readonly documentsSaving: string[] = new Array();
 
-  public readonly executeCommand: any;
-
-  public readonly showErrorMessage: any;
-  public readonly showWarningMessage: any;
-  public readonly showInformationMessage: any;
-
-  public readonly showInputBox: any;
-  public readonly showQuickPick: any;
-  public readonly showTextDocument: any;
-  public readonly openTextDocument: any;
-
-  @WebviewPanelSerializer("GitHubGistHistory")
-  public readonly serializer = {
-    deserializeWebviewPanel(webviewPanel: WebviewPanel, state: any): Thenable<void> {
-      HistoryPanel.currentPanel = new HistoryPanel(webviewPanel);
-      return;
-    }
-  };
-
   constructor(context: ExtensionContext) {
     super(context);
-
-    this.executeCommand = promisify(commands.executeCommand, commands);
-
-    this.showErrorMessage = promisify(window.showErrorMessage, window);
-    this.showWarningMessage = promisify(window.showWarningMessage, window);
-    this.showInformationMessage = promisify(window.showInformationMessage, window);
-
-    this.showInputBox = promisify(window.showInputBox, window);
-    this.showQuickPick = promisify(window.showQuickPick, window);
-    this.showTextDocument = promisify(window.showTextDocument, window);
-    this.openTextDocument = promisify(workspace.openTextDocument, workspace);
   }
 
   getHomeDirectory(): string {
@@ -92,10 +69,10 @@ export class GitHubGistExplorer extends Subscriber {
       ])
       .then(() => {
         this.treeProvider.sort(sortBy, ascending);
-        this.executeCommand("setContext", "ascending", ascending);
+        VSCode.executeCommand("setContext", "ascending", ascending);
       })
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
   }
 
@@ -155,20 +132,28 @@ export class GitHubGistExplorer extends Subscriber {
   @Command("GitHubGistExplorer.addGist")
   addGist() {
     const options = {
-      prompt: localize("explorer.add_gist_description", "Provide the description for your new gist here")
+      prompt: i18n("explorer.add_gist_description")
     };
-    this.showInputBox(options)
+    VSCode.showInputBox(options)
       .then(description => {
-        return this.showQuickPick(
-            [ constans.GistType.Public, constans.GistType.Secret ],
-            { placeHolder: localize("explorer.add_gist_type", "Please decide the type for your new gist")}
+        const pub: string = i18n("explorer.public");
+        const sec: string = i18n("explorer.secret");
+
+        return VSCode.showQuickPick(
+            [ pub, sec ],
+            {
+              placeHolder: i18n("explorer.add_gist_type")
+            }
           )
-          .then(type => {
-            if (!type) {
-              const msg = localize("error.gist_type_required", "Gist type is required");
+          .then(selectedType => {
+            if (!selectedType) {
+              const msg = i18n("error.gist_type_required");
               return Promise.reject(new Error(msg));
             }
-            return Promise.resolve({ type, description });
+            return Promise.resolve({
+              type: selectedType === pub ? constans.GistType.Public : constans.GistType.Secret,
+              description
+            });
           });
       })
       .then(result => {
@@ -178,7 +163,7 @@ export class GitHubGistExplorer extends Subscriber {
         this.treeProvider.refresh();
       })
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
   }
 
@@ -187,10 +172,10 @@ export class GitHubGistExplorer extends Subscriber {
     const gist: IGist = node.metadata as IGist;
 
     const options = {
-      value: gist.description,
-      prompt: localize("explorer.edit_gist_description", "Provide the description for gist here")
+      value: gist.label,
+      prompt: i18n("explorer.edit_gist_description")
     };
-    this.showInputBox(options)
+    VSCode.showInputBox(options)
       .then(value => {
         return api.updateWaitable(gist.id, value || "");
       })
@@ -198,29 +183,29 @@ export class GitHubGistExplorer extends Subscriber {
         this.treeProvider.refresh();
       })
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
   }
 
   @Command("GitHubGistExplorer.deleteGist")
   deleteGist(node: GistTreeItem) {
     const gist: IGist = node.metadata as IGist;
-    this.showWarningMessage(`Are you sure to delete gist ${node.label}?`, { modal: true }, "Ok")
+
+    const text = i18n("explorer.deleting_gist_confirmation", gist.label);
+    VSCode.showWarningMessage(text, { modal: true }, "Ok")
       .then(value => {
         if (value === "Ok") {
-          return api.destroyWaitable(gist.id);
-        } else {
-          return Promise.resolve();
+          return api.destroyWaitable(gist.id)
+            .then(() => {
+              const home: string = this.getHomeDirectory();
+              return filesystem.rmrf(`${home}/${gist.id}`);
+            }).then(() => {
+              this.treeProvider.refresh();
+            });
         }
       })
-      .then(() => {
-        const home: string = this.getHomeDirectory();
-        return filesystem.rmrf(`${home}/${gist.id}`);
-      }).then(() => {
-        this.treeProvider.refresh();
-      })
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
   }
 
@@ -235,7 +220,7 @@ export class GitHubGistExplorer extends Subscriber {
         this.treeProvider.refresh();
       })
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
   }
 
@@ -250,28 +235,13 @@ export class GitHubGistExplorer extends Subscriber {
         this.treeProvider.refresh();
       })
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
   }
 
   @Command("GitHubGistExplorer.history")
   history(node: GistTreeItem) {
-    const a = Uri.parse("https://gist.githubusercontent.com/k9982874/8e8c6eea532283f2621fc9516330e068/raw/4d75db8c53208176a61faacacafa80bbdf598db2/extensions.json");
-    const b = Uri.parse("https://gist.githubusercontent.com/k9982874/8e8c6eea532283f2621fc9516330e068/raw/a4dbb3d5fe7d7193e3813302c8f0845a702579f1/extensions.json");
-
-    this.executeCommand("vscode.diff", a, b, "diff", { preview: true });
-
-    HistoryPanel.show((node.metadata as IGist).id);
-    /*
-		api.retrieveWaitable(gist.id)
-			.then(data => {
-				HistoryPanel.show(data);
-				console.log(data);
-			})
-			.catch(error => {
-				this.showErrorMessage(error.message);
-			});
-		*/
+    HistoryViewProvider.show(node.metadata as IGist);
   }
 
   @Command("GitHubGistExplorer.paste")
@@ -279,26 +249,26 @@ export class GitHubGistExplorer extends Subscriber {
     clipboardy.read()
       .then(content => {
         if (content.trim().length === 0) {
-          const msg = localize("error.empty_clipboard", "Nothing to paste");
-          this.showInformationMessage(msg);
+          const msg = i18n("error.empty_clipboard");
+          VSCode.showInformationMessage(msg);
         } else {
           this.addFile(node, content);
         }
       })
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
   }
 
   @Command("GitHubGistExplorer.addFile")
   addFile(node: GistTreeItem, content?: string) {
     const options = {
-      prompt: localize("explorer.add_file_name", "Provide the name for new file here")
+      prompt: i18n("explorer.add_file_name")
     };
-    this.showInputBox(options)
+    VSCode.showInputBox(options)
       .then(filename => {
         if (!filename) {
-          const msg = localize("error.file_name_required", "File name is required");
+          const msg = i18n("error.file_name_required");
           return Promise.reject(new Error(msg));
         }
 
@@ -309,7 +279,7 @@ export class GitHubGistExplorer extends Subscriber {
         this.treeProvider.refresh();
       })
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
   }
 
@@ -335,7 +305,7 @@ export class GitHubGistExplorer extends Subscriber {
       .then(exists => {
         if (exists) {
           const uri = Uri.file(filename);
-          return this.openTextDocument(uri);
+          return VSCode.openTextDocument(uri);
         } else {
           return api.getFileWaitable(file.rawURL)
             .then(content => {
@@ -344,37 +314,44 @@ export class GitHubGistExplorer extends Subscriber {
               } else if (typeof content === "string") {
                 return filesystem.writefile(filename, content);
               } else {
-                const msg = localize("error.unknown_file_format", "Unknown file format");
+                const msg = i18n("error.unknown_file_format");
                 return Promise.reject(new Error(msg));
               }
             })
             .then(() => {
               const uri = Uri.file(filename);
-              return this.openTextDocument(uri);
+              return VSCode.openTextDocument(uri);
             });
         }
       })
       .then(doc => {
-        this.showTextDocument(doc, { preview: true });
+        VSCode.showTextDocument(doc, { preview: true });
       })
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
   }
 
   @Command("GitHubGistExplorer.deleteFile")
   deleteFile(node: GistTreeItem) {
     const file: IFile = node.metadata as IFile;
-    api.deleteFileWaitable(file.gistID, file.filename)
-      .then(() => {
-        const home: string = this.getHomeDirectory();
-        return filesystem.rmrf(`${home}/${file.gistID}/${file.filename}`);
-      })
-      .then(() => {
-        this.treeProvider.refresh();
+
+    const text = i18n("explorer.deleting_file_confirmation", file.filename);
+    VSCode.showWarningMessage(text, { modal: true }, "Ok")
+      .then(value => {
+        if (value === "Ok") {
+          return api.deleteFileWaitable(file.gistID, file.filename)
+            .then(() => {
+              const home: string = this.getHomeDirectory();
+              return filesystem.rmrf(`${home}/${file.gistID}/${file.filename}`);
+            })
+            .then(() => {
+              this.treeProvider.refresh();
+            });
+        }
       })
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
   }
 
@@ -384,12 +361,12 @@ export class GitHubGistExplorer extends Subscriber {
 
     const options = {
       value: file.filename,
-      prompt: localize("explorer.rename_file_name", "Provide the name for file here")
+      prompt: i18n("explorer.rename_file_name")
     };
-    this.showInputBox(options)
+    VSCode.showInputBox(options)
       .then(value => {
         if (!value) {
-          const msg = localize("error.file_name_required", "File name is required");
+          const msg = i18n("error.file_name_required");
           return Promise.reject(new Error(msg));
         }
         return api.renameFileWaitable(file.gistID, file.filename, value);
@@ -402,7 +379,7 @@ export class GitHubGistExplorer extends Subscriber {
         this.treeProvider.refresh();
       })
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
   }
 
@@ -421,13 +398,16 @@ export class GitHubGistExplorer extends Subscriber {
         } else if (typeof content === "string") {
           return filesystem.writefile(filename, content);
         } else {
-          const msg = localize("error.unknown_file_format", "Unknown file format");
+          const msg = i18n("error.unknown_file_format");
           return Promise.reject(new Error(msg));
         }
       })
       .then(() => {
         const uri = Uri.file(filename);
-        return this.openTextDocument(uri);
+        return VSCode.openTextDocument(uri);
+      })
+      .catch(error => {
+        VSCode.showErrorMessage(error.message);
       });
   }
 
@@ -464,7 +444,7 @@ export class GitHubGistExplorer extends Subscriber {
 
     api.updateFileWaitable(gistID, name, doc.getText())
       .catch(error => {
-        this.showErrorMessage(error.message);
+        VSCode.showErrorMessage(error.message);
         return Promise.resolve();
       })
       .finally(() => {
@@ -479,14 +459,12 @@ export function activate(context: ExtensionContext) {
   const sortBy: string = ConfigurationManager.get("sortBy");
   const ascending: boolean = ConfigurationManager.get("ascending") === "True";
 
-  explorer.executeCommand("setContext", "ascending", ascending)
+  VSCode.executeCommand("setContext", "ascending", ascending)
     .then(() => {
       explorer.treeProvider.sort(sortBy, ascending);
       return explorer.treeProvider.refresh();
     })
     .finally(() => {
-      explorer.executeCommand("setContext", "loaded", true);
+      VSCode.executeCommand("setContext", "loaded", true);
     });
-
-  return explorer;
 }

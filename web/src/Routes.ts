@@ -1,10 +1,10 @@
-import History from './History.vue';
+import History from "./History.vue";
 
 export default [{
-  name: 'History',
-  path: '/history',
+  name: "History",
+  path: "/history",
   component: History
 }, {
-  path: '*',
-  redirect: '/history'
+  path: "*",
+  redirect: "/history"
 }];

@@ -1,0 +1,41 @@
+{
+  "error": {
+    "empty_clipboard": "剪切板是空的，没有可以粘贴的内容",
+    "empty_file": "无法保存一个空文件",
+    "empty_selection": "请先选择需要保存的内容容",
+    "file_name_required": "请输入文件名",
+    "gist_required": "必须选取一个Gist",
+    "gist_type_required": "请指定Gist类型",
+    "github_token_missing": "请先设置GitHub令牌",
+    "github_username_missing": "请先设置GitHub用户名",
+    "open_file": "请先打开一个要操作的文件",
+    "operation_cancelled": "操作被取消",
+    "unknown_file_format": "未知的文件类型"
+  },
+  "explorer": {
+    "add_file_name": "请为输入文件名描述",
+    "add_gist_description": "请为新Gist输入描述",
+    "add_gist_type": "请决定Gist的类型",
+    "creating_gist": "创建中...",
+    "compare_file": "与最新版本比较",
+    "deleting_file": "删除文件中...",
+    "deleting_file_confirmation": "确认删除文件%s吗?",
+    "deleting_gist": "删除中...",
+    "deleting_gist_confirmation": "确认删除%s吗？",
+    "downloading_file": "文件下载中...",
+    "edit_gist_description": "请为输入描述",
+    "listing_gist": "同步列表中...",
+    "listing_starred_gist": "同步收藏列表中...",
+    "view_file": "查看文件内容",
+    "pick_gist": "请选择一个Gist",
+    "public": "公开",
+    "rename_file_name": "请为输入文件名描述",
+    "renaming_file": "文件重命名中...",
+    "retrieve_gist": "拉取Gist中...",
+    "secret": "私有",
+    "star_gist": "添加收藏中...",
+    "unstar_gist": "取消收藏中...",
+    "updating_file": "更新文件中...",
+    "updating_gist": "更新中..."
+  }
+}

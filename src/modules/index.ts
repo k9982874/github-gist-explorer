@@ -1,3 +1,9 @@
+export enum HistoryStatus {
+  Unknown = "UNKNOWN",
+  Loading = "LOADING",
+  Done = "DONE"
+}
+
 export interface IChangeStatus {
   total: number;
   additions: number;
@@ -36,11 +42,13 @@ export interface IUser {
 }
 
 export interface IHistory {
-  user: IUser;
+  user?: IUser;
   version: string;
   committedAt: string;
   changeStatus: IChangeStatus;
   url: string;
+  status?: HistoryStatus;
+  gist?: IGist;
 }
 
 export interface IGist {
@@ -59,9 +67,9 @@ export interface IGist {
   updatedAt: string;
   description: string;
   comments: string;
-  user: IUser;
+  user?: IUser;
   commentsURL: string;
-  owner: IUser;
+  owner?: IUser;
   history: IHistory[];
   truncated: boolean;
 }

@@ -12,9 +12,12 @@
 3. Create secet and public gist.
 4. Edit or delete the gist.
 5. Create, edit, delete, rename the files of gist.
-6. You can create gist from file in activity editor directly.
-7. You can create gist from the selection!
-8. You can create gist from the clipboard.
+6. Allow create gist from file in activity editor directly.
+7. Allow create gist from the selection!
+8. Allow create gist from the clipboard.
+9. Allow check the gist history in Visual Studio Code directly.
+10. Allow view the file contents of history file.
+11. Allow compare the history with the lestest version.
 ```
 
 ## How to use
@@ -53,3 +56,6 @@ There are two ways to create gist from clipboard.
 1. Run the command from command palette.
 2. Run the command from right-click menu.
 ![Paste](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/paste.gif)
+
+## Work with history
+![History](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/history.gif)

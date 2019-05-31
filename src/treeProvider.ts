@@ -1,7 +1,7 @@
-import * as nls from "vscode-nls";
-const localize = nls.loadMessageBundle();
+import i18n from "./i18n";
 
-import { commands, window, Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from "vscode";
+import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from "vscode";
+import { VSCode } from "./promisify";
 
 import * as path from "path";
 
@@ -14,6 +14,7 @@ import Gist from "./modules/gist";
 import File from "./modules/file";
 
 import ConfigurationManager from "./configuration";
+
 
 export enum GistTreeSortBy {
     Label = "Label",
@@ -37,7 +38,7 @@ export default class GistTreeProvider implements TreeDataProvider<GistTreeItem> 
 
     return ConfigurationManager.check()
       .then(config => {
-        const msg = localize("explorer.listing_gist", "Lising gists...");
+        const msg = i18n("explorer.listing_gist");
         return waitfiy(`${constans.EXTENSION_NAME}: ${msg}`, () => {
             return Promise.all([api.list(config.gitHub.username), api.listStarred()]);
           }, this)()
@@ -50,13 +51,13 @@ export default class GistTreeProvider implements TreeDataProvider<GistTreeItem> 
             return Promise.resolve();
           })
           .catch(error => {
-            window.showErrorMessage(error.message);
+            VSCode.showErrorMessage(error.message);
             return Promise.resolve();
           });
       })
       .catch(error => {
-        window.showInformationMessage(error.message);
-        commands.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
+        VSCode.showInformationMessage(error.message);
+        VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
         return Promise.resolve();
       })
       .finally(() => {
@@ -152,17 +153,16 @@ export class GistTreeItem extends TreeItem {
       this.label = metadata.label;
 
       if (starred) {
-        console.log(__dirname);
         this.contextValue = "GitHubGistRootStarrd";
 
         this.iconPath = {
-          light: path.join(__filename, "..", "..", "resources", "light", "star.svg"),
-          dark: path.join(__filename, "..", "..", "resources", "dark", "star.svg")
+          light: path.join(__filename, "../../resources/light/star.svg"),
+          dark: path.join(__filename, "../../resources/dark/star.svg")
         };
       } else {
         this.iconPath = {
-          light: path.join(__filename, "..", "..", "resources", "light", "folder.svg"),
-          dark: path.join(__filename, "..", "..", "resources", "dark", "folder.svg")
+          light: path.join(__filename, "../../resources/light/folder.svg"),
+          dark: path.join(__filename, "../../resources/dark/folder.svg")
         };
       }
     }
@@ -177,7 +177,7 @@ export class GistTreeItem extends TreeItem {
   }
 
   iconPath = {
-    light: path.join(__filename, "..", "..", "resources", "light", "snippet.svg"),
-    dark: path.join(__filename, "..", "..", "resources", "dark", "snippet.svg")
+    light: path.join(__filename, "../../resources/light/snippet.svg"),
+    dark: path.join(__filename, "../../resources/dark/snippet.svg")
   };
 }
