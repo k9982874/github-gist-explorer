@@ -1,7 +1,6 @@
 import i18n from "./i18n";
 
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from "vscode";
-import { VSCode } from "./promisify";
 
 import * as path from "path";
 
@@ -9,12 +8,12 @@ import * as constans from "./constans";
 import * as api from "./api";
 
 import waitfiy from "./waitfiy";
+import VSCode from "./vscode";
 
 import Gist from "./modules/gist";
 import File from "./modules/file";
 
 import ConfigurationManager from "./configuration";
-
 
 export enum GistTreeSortBy {
     Label = "Label",

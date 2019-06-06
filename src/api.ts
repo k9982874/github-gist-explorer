@@ -12,7 +12,7 @@ import GistModule from "./modules/gist";
 import i18n from "./i18n";
 
 export interface INewFile {
-  name: string;
+  filename: string;
   content: string;
 }
 
@@ -113,20 +113,20 @@ export default class API {
       files: {}
     };
 
-    if (files === undefined) {
+    if (files) {
+      data.files = files.reduce((pv, cv) => {
+        pv[cv.filename] = {
+          content: cv.content
+        };
+        return pv;
+      }, {});
+    } else {
       const file = constans.CLASSIC_MOVIE_QUOTES[Math.floor(Math.random() * 100)];
       data.files = {
         [file.name]: {
           content: file.words
         }
       };
-    } else {
-      data.files = files.reduce((pv, cv) => {
-        pv[cv.name] = {
-          content: cv.content
-        };
-        return pv;
-      }, {});
     }
 
     return axios.post(`${constans.GITHUB_API_URL}/gists`, data, options)
@@ -158,13 +158,23 @@ export default class API {
       });
   }
 
-  update(gistID: string, description: string): Promise<IGist> {
+  update(gistID: string, description: string, files?: INewFile[]): Promise<IGist> {
     const options: AxiosRequestConfig = this.createRequestConfig();
 
     const data = {
       gist_id: gistID,
-      description
+      description,
+      files: undefined
     };
+
+    if (files) {
+      data.files = files.reduce((pv, cv) => {
+        pv[cv.filename] = {
+          content: cv.content
+        };
+        return pv;
+      }, {});
+    }
 
     return axios.patch(`${constans.GITHUB_API_URL}/gists/${gistID}`, data, options)
       .then(response => {
@@ -216,23 +226,7 @@ export default class API {
   }
 
   updateFile(gistID: string, filename: string, content: string): Promise<IGist> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
-
-    const data = {
-      files: {
-        [filename]: { content }
-      },
-      gist_id: gistID
-    };
-
-    return axios.patch(`${constans.GITHUB_API_URL}/gists/${gistID}`, data, options)
-      .then(response => {
-        if (response.status !== 200) {
-          return Promise.reject(new Error(response.statusText));
-        }
-
-        return Promise.resolve(new GistModule(response.data));
-      });
+    return this.update(gistID, undefined, [{ filename, content }]);
   }
 
   deleteFile(gistID: string, filename: string): Promise<void> {
@@ -316,9 +310,9 @@ export function retrieve(gistID: string, version?: string): Promise<IGist> {
   return (new API(token)).retrieve(gistID, version);
 }
 
-export function update(gistID: string, description: string): Promise<IGist> {
+export function update(gistID: string, description: string, files?: INewFile[]): Promise<IGist> {
   const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).update(gistID, description);
+  return (new API(token)).update(gistID, description, files);
 }
 
 export function destroy(gistID: string): Promise<void> {

@@ -4,8 +4,6 @@ import { commands, extensions, window, Uri, ViewColumn, WebviewPanel } from "vsc
 
 import { IWebviewProvider, IWebviewWrapper, WebviewProvider } from "vscode-extension-decorator";
 
-import { VSCode } from "./promisify";
-
 import * as fs from "fs";
 import * as path from "path";
 
@@ -13,6 +11,8 @@ import * as api from "./api";
 import * as constans from "./constans";
 
 import { IGist } from "./modules";
+
+import VSCode from "./vscode";
 
 @WebviewProvider
 export default class HistoryViewProvider implements IWebviewProvider {
@@ -96,17 +96,19 @@ export default class HistoryViewProvider implements IWebviewProvider {
 
     VSCode.showQuickPick([view, compare])
       .then(action => {
+        const version = data.version.substr(-7);
+
         if (action) {
           if (action === view) {
-            const uri = Uri.parse(`GitHubGistContent:${data.history}`);
+            const uri = Uri.parse(`GitHubGistHistoryContent:${version} - ${data.filename}?${data.history}`);
             VSCode.showTextDocument(uri, { preview: true });
           } else if (action === compare) {
-            const lastest = Uri.parse(`GitHubGistContent:${data.lastest}`);
-            const history = Uri.parse(`GitHubGistContent:${data.history}`);
+            const latest = Uri.parse(`GitHubGistHistoryContent:${data.filename}?${data.lastest}`);
+            const history = Uri.parse(`GitHubGistHistoryContent:${data.filename}?${data.history}`);
 
-            const title = `${data.filename}: Lastest \u2194 ${data.version.substr(-7)}`;
+            const title = `${data.filename}: Lastest \u2194 ${version}`;
 
-            commands.executeCommand("vscode.diff", lastest, history, title, { preview: true });
+            commands.executeCommand("vscode.diff", latest, history, title, { preview: true });
           }
         }
       })

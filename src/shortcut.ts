@@ -1,17 +1,20 @@
 import i18n from "./i18n";
 
-import { window } from "vscode";
-import { VSCode } from "./promisify";
+import { window, Uri } from "vscode";
 
 import * as path from "path";
 
 import * as clipboardy from "clipboardy";
+
+import * as filesystem from "./filesystem";
 
 import * as constans from "./constans";
 import * as api from "./api";
 
 import { IGist } from "./modules";
 import GistModule from "./modules/gist";
+
+import VSCode from "./vscode";
 
 import ConfigurationManager, { IConfiguration } from "./configuration";
 
@@ -82,15 +85,13 @@ export default class ShortCut {
   saveIt(treeProvider: GistTreeProvider) {
     const editor = window.activeTextEditor;
     if (!editor) {
-      const msg = i18n("error.open_file");
-      VSCode.showInformationMessage(msg);
+      VSCode.i18n("error.open_file").showWarningMessage();
       return;
     }
 
     const content = editor.document.getText();
     if (content.trim().length === 0) {
-      const msg = i18n("error.empty_file");
-      VSCode.showInformationMessage(msg);
+      VSCode.i18n("error.empty_file").showWarningMessage();
       return;
     }
 
@@ -106,7 +107,7 @@ export default class ShortCut {
           });
       })
       .catch(error => {
-        VSCode.showInformationMessage(error.message);
+        VSCode.showWarningMessage(error.message);
         VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
       });
   }
@@ -114,15 +115,13 @@ export default class ShortCut {
   clipIt(treeProvider: GistTreeProvider) {
     const editor = window.activeTextEditor;
     if (!editor) {
-      const msg = i18n("error.open_file");
-      VSCode.showInformationMessage(msg);
+      VSCode.i18n("error.open_file").showWarningMessage();
       return;
     }
 
     const content = editor.selection.isEmpty ? editor.document.getText() : editor.document.getText(editor.selection);
     if (content.trim().length === 0) {
-      const msg = i18n("error.empty_selection");
-      VSCode.showInformationMessage(msg);
+      VSCode.i18n("error.empty_selection").showWarningMessage();
       return;
     }
 
@@ -138,7 +137,7 @@ export default class ShortCut {
           });
       })
       .catch(error => {
-        VSCode.showInformationMessage(error.message);
+        VSCode.showWarningMessage(error.message);
         VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
       });
   }
@@ -147,8 +146,8 @@ export default class ShortCut {
     clipboardy.read()
       .then(content => {
         if (content.trim().length === 0) {
-          const msg = i18n("error.empty_clipboard");
-          return Promise.reject(new Error(msg));
+          VSCode.i18n("error.empty_clipboard").showWarningMessage();
+          return;
         }
 
         ConfigurationManager.check()
@@ -163,13 +162,45 @@ export default class ShortCut {
               });
           })
           .catch(error => {
-            VSCode.showInformationMessage(error.message);
+            VSCode.showWarningMessage(error.message);
             VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
-            return Promise.resolve();
           });
       })
       .catch(error => {
-        VSCode.showInformationMessage(error.message);
+        VSCode.showErrorMessage(error.message);
       });
+  }
+
+  importFolder() {
+    /*
+    ConfigurationManager.check()
+      .then(config => {
+        const options = {
+          openLabel: i18n("ok"),
+          canSelectFiles: false,
+          canSelectFolders: true,
+          canSelectMany: false
+        };
+        return VSCode.showOpenDialog(options)
+          .then(uris => {
+            if (!uris || uris.length === 0) {
+              return Promise.resolve([]);
+            }
+
+            const basePath = uris.shift().path;
+            return filesystem.walkdir(basePath);
+          })
+          .then(results => {
+            filesystem.writefile('/tmp/log', results.join("\n"));
+          })
+          .catch(error => {
+            VSCode.showErrorMessage(error.message);
+          });
+      })
+      .catch(error => {
+        VSCode.showWarningMessage(error.message);
+        VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
+      });
+    */
   }
 }

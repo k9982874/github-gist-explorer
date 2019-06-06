@@ -29,6 +29,7 @@
 		"onCommand:GitHubGistExplorer.shortcut.saveIt",
 		"onCommand:GitHubGistExplorer.shortcut.clipIt",
 		"onCommand:GitHubGistExplorer.shortcut.pasteIt",
+		"onCommand:GitHubGistExplorer.shortcut.importFolder",
 		"onView:GitHubGistExplorer",
 		"onWebviewPanel:GitHubGistHistory"
 	],
@@ -68,6 +69,10 @@
 			{
 				"command": "GitHubGistExplorer.shortcut.pasteIt",
 				"title": "%extension.shortcut.paste_it%"
+			},
+			{
+				"command": "GitHubGistExplorer.shortcut.importFolder",
+				"title": "%extension.shortcut.importFolder%"
 			},
 			{
 				"command": "GitHubGistExplorer.refresh",
@@ -116,6 +121,10 @@
 			{
 				"command": "GitHubGistExplorer.deleteGist",
 				"title": "%extension.command.delete_gist%"
+			},
+			{
+				"command": "GitHubGistExplorer.exportGist",
+				"title": "%extension.command.export_gist%"
 			},
 			{
 				"command": "GitHubGistExplorer.starGist",
@@ -214,6 +223,10 @@
 					"when": "false"
 				},
 				{
+					"command": "GitHubGistExplorer.exportGist",
+					"when": "false"
+				},
+				{
 					"command": "GitHubGistExplorer.starGist",
 					"when": "false"
 				},
@@ -309,6 +322,11 @@
 					"group": "GitHubGistRoot@3"
 				},
 				{
+					"command": "GitHubGistExplorer.exportGist",
+					"when": "view == GitHubGistExplorer && viewItem =~ /^GitHubGistRoot/",
+					"group": "GitHubGistExport@1"
+				},
+				{
 					"command": "GitHubGistExplorer.history",
 					"when": "view == GitHubGistExplorer && viewItem =~ /^GitHubGistRoot/",
 					"group": "GitHubGistHistory@1"
@@ -349,7 +367,15 @@
 			{
 				"title": "GitHub Gist Explorer",
 				"properties": {
-					"explorer.sortBy": {
+					"GithubGistExplorer.github.username": {
+						"type": "string",
+						"default": ""
+					},
+					"GithubGistExplorer.github.token": {
+						"type": "string",
+						"default": ""
+					},
+					"GithubGistExplorer.explorer.sortBy": {
 						"type": "string",
 						"default": "lastUpdated",
 						"enum": [
@@ -358,7 +384,7 @@
 							"Created"
 						]
 					},
-					"explorer.ascending": {
+					"GithubGistExplorer.explorer.ascending": {
 						"type": "string",
 						"default": "False",
 						"enum": [
@@ -366,13 +392,14 @@
 							"False"
 						]
 					},
-					"github.username": {
-						"type": "string",
-						"default": ""
-					},
-					"github.token": {
-						"type": "string",
-						"default": ""
+					"GithubGistExplorer.import.excludes": {
+						"type": "array",
+						"default": [
+							".git",
+							".gradle",
+							".vscode",
+							"node_modules"
+						]
 					}
 				}
 			}

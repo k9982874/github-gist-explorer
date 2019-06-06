@@ -17,7 +17,7 @@
 8. Allow create gist from the clipboard.
 9. Allow check the gist history in Visual Studio Code directly.
 10. Allow view the file contents of history file.
-11. Allow compare the history with the lestest version.
+11. Allow compare the history with the latest version.
 ```
 
 ## How to use

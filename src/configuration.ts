@@ -9,33 +9,46 @@ export interface IGitHub {
   token: string;
 }
 
-export interface IConfiguration {
+export interface IExplorer {
   sortBy: string;
   ascending: boolean;
+}
 
+export interface IImport {
+  excludes: string[];
+}
+
+export interface IConfiguration {
   gitHub: IGitHub;
+  explorer: IExplorer;
+  import: IImport;
 }
 
 export class ConfigurationManager {
   check(): Promise<IConfiguration> {
-    const username: string = this.getGitHub("username") || "";
+    const username: string = this.get("github", "username") || "";
     if (username.length === 0) {
       const msg = i18n("error.github_username_missing");
       return Promise.reject(new Error(msg));
     }
 
-    const token: string = this.getGitHub("token") || "";
+    const token: string = this.get("github", "token") || "";
     if (token.length === 0) {
       const msg = i18n("error.github_token_missing");
       return Promise.reject(new Error(msg));
     }
 
     const conf: IConfiguration = {
-      sortBy: this.get("sortBy"),
-      ascending: this.get<boolean>("ascending"),
       gitHub: {
         username,
         token,
+      },
+      explorer: {
+        sortBy: this.get("explorer", "sortBy"),
+        ascending: this.get<boolean>("explorer", "ascending"),
+      },
+      import: {
+        excludes: this.get("import", "excludes")
       }
     };
 
@@ -43,23 +56,15 @@ export class ConfigurationManager {
   }
 
   affects(event: ConfigurationChangeEvent) {
-    return event.affectsConfiguration("github.username") || event.affectsConfiguration("github.token");
+    return event.affectsConfiguration("GithubGistExplorer.github.username") || event.affectsConfiguration("GithubGistExplorer.github.token");
   }
 
-  get<T>(key: string): T {
-    return workspace.getConfiguration("explorer").get<T>(key);
+  get<T>(scope: string, key: string): T {
+    return workspace.getConfiguration(`GithubGistExplorer.${scope}`).get<T>(key);
   }
 
-  set(key: string, value: any): Promise<void> {
-    return promisify(workspace.getConfiguration("explorer").update, workspace)(key, value, ConfigurationTarget.Global);
-  }
-
-  getGitHub<T>(key: string): T {
-    return workspace.getConfiguration("github").get<T>(key);
-  }
-
-  setGitHub(key: string, value: any): Promise<void> {
-    return promisify(workspace.getConfiguration("github").update, workspace)(key, value, ConfigurationTarget.Global);
+  set(scope: string, key: string, value: any): Promise<void> {
+    return promisify(workspace.getConfiguration(`GithubGistExplorer.${scope}`).update, workspace)(key, value, ConfigurationTarget.Global);
   }
 }
 
