@@ -6,9 +6,9 @@ import * as path from "path";
 
 import * as constans from "./constans";
 import * as api from "./api";
+import * as VSCode from "./vscode";
 
 import waitfiy from "./waitfiy";
-import VSCode from "./vscode";
 
 import Gist from "./modules/gist";
 import File from "./modules/file";
@@ -35,11 +35,11 @@ export default class GistTreeProvider implements TreeDataProvider<GistTreeItem> 
     this.items = [];
     this.starredItems = [];
 
-    return ConfigurationManager.check()
+    return ConfigurationManager.getInstance().check()
       .then(config => {
         const msg = i18n("explorer.listing_gist");
         return waitfiy(`${constans.EXTENSION_NAME}: ${msg}`, () => {
-            return Promise.all([api.list(config.gitHub.username), api.listStarred()]);
+            return Promise.all([api.list(config.github.username), api.listStarred()]);
           }, this)()
           .then(results => {
             const [all, starred] = results;

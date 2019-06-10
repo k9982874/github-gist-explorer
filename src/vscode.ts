@@ -27,37 +27,35 @@ export class MessageChain {
   }
 }
 
-export default class VSCode {
-  static i18n(key: string, ...args: any[]): MessageChain {
-    return new MessageChain(key, ...args);
-  }
-
-  static executeCommand<T>(...argArray: any[]) {
-    return promisify<T>(commands.executeCommand, commands).apply(commands, argArray);
-  }
-
-  static showErrorMessage<T>(...argArray: any[]) {
-    return promisify<T>(window.showErrorMessage, window).apply(argArray, argArray);
-  }
-
-  static showWarningMessage<T>(...argArray: any[]) {
-    return promisify<T>(window.showWarningMessage, window).apply(argArray, argArray);
-  }
-
-  static showInformationMessage<T>(...argArray: any[]) {
-    return promisify<T>(window.showInformationMessage, window).apply(argArray, argArray);
-  }
-
-  static readonly showInputBox = promisify(window.showInputBox, window);
-
-  static showQuickPick<T>(...argArray: any[]) {
-    return promisify<T>(window.showQuickPick, window).apply(argArray, argArray);
-  }
-
-  static readonly showOpenDialog = promisify(window.showOpenDialog, window);
-  static readonly showSaveDialog = promisify(window.showSaveDialog, window);
-
-  static readonly showTextDocument = promisify(window.showTextDocument, window);
-
-  static readonly openTextDocument = promisify(workspace.openTextDocument, workspace);
+export function message(key: string, ...args: any[]): MessageChain {
+  return new MessageChain(key, ...args);
 }
+
+export function executeCommand<T>(...argArray: any[]) {
+  return promisify<T>(commands.executeCommand, commands).apply(commands, argArray);
+}
+
+export function showErrorMessage<T>(...argArray: any[]) {
+  return promisify<T>(window.showErrorMessage, window).apply(argArray, argArray);
+}
+
+export function showWarningMessage<T>(...argArray: any[]) {
+  return promisify<T>(window.showWarningMessage, window).apply(argArray, argArray);
+}
+
+export function showInformationMessage<T>(...argArray: any[]) {
+  return promisify<T>(window.showInformationMessage, window).apply(argArray, argArray);
+}
+
+export const showInputBox = promisify(window.showInputBox, window);
+
+export function showQuickPick<T>(...argArray: any[]) {
+  return promisify<T>(window.showQuickPick, window).apply(argArray, argArray);
+}
+
+export const showOpenDialog = promisify(window.showOpenDialog, window);
+export const showSaveDialog = promisify(window.showSaveDialog, window);
+
+export const showTextDocument = promisify(window.showTextDocument, window);
+
+export const openTextDocument = promisify(workspace.openTextDocument, workspace);

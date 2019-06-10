@@ -10,19 +10,19 @@ import * as filesystem from "./filesystem";
 
 import * as constans from "./constans";
 import * as api from "./api";
+import * as VSCode from "./vscode";
 
 import { IGist } from "./modules";
-import GistModule from "./modules/gist";
 
-import VSCode from "./vscode";
+import GistModule from "./modules/gist";
 
 import ConfigurationManager, { IConfiguration } from "./configuration";
 
-import GistTreeProvider from "./TreeProvider";
+import GistTreeProvider from "./treeProvider";
 
 export default class ShortCut {
   private save(config: IConfiguration, content: string, filename?: string): Promise<IGist> {
-    return api.listWaitable(config.gitHub.username)
+    return api.listWaitable(config.github.username)
       .then(results => {
         return VSCode.showQuickPick<IGist>(
           [ ...results, new GistModule() ],
@@ -85,17 +85,17 @@ export default class ShortCut {
   saveIt(treeProvider: GistTreeProvider) {
     const editor = window.activeTextEditor;
     if (!editor) {
-      VSCode.i18n("error.open_file").showWarningMessage();
+      VSCode.message("error.open_file").showWarningMessage();
       return;
     }
 
     const content = editor.document.getText();
     if (content.trim().length === 0) {
-      VSCode.i18n("error.empty_file").showWarningMessage();
+      VSCode.message("error.empty_file").showWarningMessage();
       return;
     }
 
-    ConfigurationManager.check()
+    ConfigurationManager.getInstance().check()
       .then(config => {
         this.save(config, content, editor.document.fileName)
           .then(() => {
@@ -115,17 +115,17 @@ export default class ShortCut {
   clipIt(treeProvider: GistTreeProvider) {
     const editor = window.activeTextEditor;
     if (!editor) {
-      VSCode.i18n("error.open_file").showWarningMessage();
+      VSCode.message("error.open_file").showWarningMessage();
       return;
     }
 
     const content = editor.selection.isEmpty ? editor.document.getText() : editor.document.getText(editor.selection);
     if (content.trim().length === 0) {
-      VSCode.i18n("error.empty_selection").showWarningMessage();
+      VSCode.message("error.empty_selection").showWarningMessage();
       return;
     }
 
-    ConfigurationManager.check()
+    ConfigurationManager.getInstance().check()
       .then(config => {
         return this.save(config, content, editor.document.fileName)
           .then(() => {
@@ -146,11 +146,11 @@ export default class ShortCut {
     clipboardy.read()
       .then(content => {
         if (content.trim().length === 0) {
-          VSCode.i18n("error.empty_clipboard").showWarningMessage();
+          VSCode.message("error.empty_clipboard").showWarningMessage();
           return;
         }
 
-        ConfigurationManager.check()
+        ConfigurationManager.getInstance().check()
           .then(config => {
             return this.save(config, content)
               .then(() => {
@@ -173,7 +173,7 @@ export default class ShortCut {
 
   importFolder() {
     /*
-    ConfigurationManager.check()
+    ConfigurationManager.getInstance().check()
       .then(config => {
         const options = {
           openLabel: i18n("ok"),

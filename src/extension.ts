@@ -14,6 +14,7 @@ import * as filesystem from "./filesystem";
 
 import * as constans from "./constans";
 import * as api from "./api";
+import * as VSCode from "./vscode";
 
 import { IGist, IFile } from "./modules";
 
@@ -21,7 +22,6 @@ import { waiting } from "./waitfiy";
 
 import ConfigurationManager from "./configuration";
 
-import VSCode from "./vscode";
 import ShortCut from "./shortcut";
 
 import ContentProvider from "./contentProvider";
@@ -52,7 +52,7 @@ export class GitHubGistExplorer extends Subscriber {
 
   getHomeDirectory(): string {
     const extensionPath: string = extensions.getExtension(constans.EXTENSION_ID).extensionPath;
-    const username: string = ConfigurationManager.get("github", "username");
+    const username: string = ConfigurationManager.getInstance().github.username;
 
     return `${extensionPath}/${username}`;
   }
@@ -67,25 +67,20 @@ export class GitHubGistExplorer extends Subscriber {
 
   sort(sortBy: string, ascending?: boolean) {
     if (ascending === undefined) {
-      ascending = ConfigurationManager.get("explorer", "ascending") === "True";
+      ascending = ConfigurationManager.getInstance().explorer.ascending;
     }
 
-    Promise.all([
-        ConfigurationManager.set("explorer", "sortBy", sortBy),
-        ConfigurationManager.set("explorer", "ascending", ascending ? "True" : "False")
-      ])
-      .then(() => {
-        this.treeProvider.sort(sortBy, ascending);
-        VSCode.executeCommand("setContext", "ascending", ascending);
-      })
-      .catch(error => {
-        VSCode.showErrorMessage(error.message);
-      });
+    ConfigurationManager.getInstance().explorer.sortBy = sortBy;
+    ConfigurationManager.getInstance().explorer.ascending = ascending;
+
+    this.treeProvider.sort(sortBy, ascending);
+
+    VSCode.executeCommand("setContext", "ascending", ascending);
   }
 
   @Command("GitHubGistExplorer.sortByLabel")
   sortByLabel() {
-    const sortBy: string = ConfigurationManager.get("explorer", "sortBy");
+    const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
     if (sortBy !== GistTreeSortBy.Label) {
       this.sort(GistTreeSortBy.Label);
     }
@@ -93,7 +88,7 @@ export class GitHubGistExplorer extends Subscriber {
 
   @Command("GitHubGistExplorer.sortByLastUpdated")
   sortByLastUpdated() {
-    const sortBy: string = ConfigurationManager.get("explorer", "sortBy");
+    const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
     if (sortBy !== GistTreeSortBy.LastUpdated) {
       this.sort(GistTreeSortBy.LastUpdated);
     }
@@ -101,7 +96,7 @@ export class GitHubGistExplorer extends Subscriber {
 
   @Command("GitHubGistExplorer.sortByCreated")
   sortByCreated() {
-    const sortBy: string = ConfigurationManager.get("explorer", "sortBy");
+    const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
     if (sortBy !== GistTreeSortBy.Created) {
       this.sort(GistTreeSortBy.Created);
     }
@@ -109,13 +104,13 @@ export class GitHubGistExplorer extends Subscriber {
 
   @Command("GitHubGistExplorer.ascending")
   ascending() {
-    const sortBy: string = ConfigurationManager.get("explorer", "sortBy");
+    const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
     this.sort(sortBy, false);
   }
 
   @Command("GitHubGistExplorer.descending")
   descending() {
-    const sortBy: string = ConfigurationManager.get("explorer", "sortBy");
+    const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
     this.sort(sortBy, true);
   }
 
@@ -158,7 +153,7 @@ export class GitHubGistExplorer extends Subscriber {
           )
           .then(selected => {
             if (!selected) {
-              VSCode.i18n("error.gist_type_required").showWarningMessage();
+              VSCode.message("error.gist_type_required").showWarningMessage();
               return;
             }
 
@@ -201,7 +196,7 @@ export class GitHubGistExplorer extends Subscriber {
   deleteGist(node: GistTreeItem) {
     const gist: IGist = node.metadata as IGist;
 
-    VSCode.i18n("explorer.deleting_gist_confirmation", gist.label).showWarningMessage({ modal: true }, i18n("explorer.ok"))
+    VSCode.message("explorer.deleting_gist_confirmation", gist.label).showWarningMessage({ modal: true }, i18n("explorer.ok"))
       .then(value => {
         if (value) {
           return api.destroyWaitable(gist.id)
@@ -287,11 +282,11 @@ export class GitHubGistExplorer extends Subscriber {
       })
       .then(results => {
         if (results.length === 0) {
-          VSCode.i18n("explorer.export_cancelled").showWarningMessage();
+          VSCode.message("explorer.export_cancelled").showWarningMessage();
           return;
         }
 
-        return VSCode.i18n("explorer.export_completed").showInformationMessage(i18n("explorer.view_report"))
+        return VSCode.message("explorer.export_completed").showInformationMessage(i18n("explorer.view_report"))
           .then(s => {
             if (s) {
               const data = Buffer.from(results.join("\n")).toString("base64");
@@ -310,7 +305,7 @@ export class GitHubGistExplorer extends Subscriber {
     clipboardy.read()
       .then(content => {
         if (content.trim().length === 0) {
-          VSCode.i18n("error.empty_clipboard").showInformationMessage();
+          VSCode.message("error.empty_clipboard").showInformationMessage();
           return;
         }
 
@@ -349,7 +344,7 @@ export class GitHubGistExplorer extends Subscriber {
     VSCode.showInputBox(options)
       .then(filename => {
         if (!filename) {
-          VSCode.i18n("error.file_name_required").showWarningMessage();
+          VSCode.message("error.file_name_required").showWarningMessage();
           return;
         }
 
@@ -400,10 +395,10 @@ export class GitHubGistExplorer extends Subscriber {
       })
       .then(gist => {
         if (gist) {
-          VSCode.i18n("explorer.import_completed").showInformationMessage();
+          VSCode.message("explorer.import_completed").showInformationMessage();
           this.treeProvider.refresh();
         } else {
-          VSCode.i18n("explorer.import_cancelled").showWarningMessage();
+          VSCode.message("explorer.import_cancelled").showWarningMessage();
         }
       });
   }
@@ -461,7 +456,7 @@ export class GitHubGistExplorer extends Subscriber {
   deleteFile(node: GistTreeItem) {
     const file: IFile = node.metadata as IFile;
 
-    VSCode.i18n("explorer.deleting_file_confirmation", file.filename).showWarningMessage({ modal: true }, i18n("explorer.ok"))
+    VSCode.message("explorer.deleting_file_confirmation", file.filename).showWarningMessage({ modal: true }, i18n("explorer.ok"))
       .then(value => {
         if (value) {
           return api.deleteFileWaitable(file.gistID, file.filename)
@@ -490,7 +485,7 @@ export class GitHubGistExplorer extends Subscriber {
     VSCode.showInputBox(options)
       .then(value => {
         if (!value) {
-          VSCode.i18n("error.file_name_required").showWarningMessage();
+          VSCode.message("error.file_name_required").showWarningMessage();
           return;
         }
         return api.renameFileWaitable(file.gistID, file.filename, value)
@@ -537,7 +532,7 @@ export class GitHubGistExplorer extends Subscriber {
 
   @Event("onDidChangeConfiguration")
   didChangeConfigurationHandle(event: ConfigurationChangeEvent) {
-    if (ConfigurationManager.affects(event)) {
+    if (ConfigurationManager.getInstance().affects(event)) {
       const home: string = this.getHomeDirectory();
       filesystem.rmrf(home).finally(() => {
         this.treeProvider.refresh();
@@ -580,8 +575,8 @@ export class GitHubGistExplorer extends Subscriber {
 export function activate(context: ExtensionContext) {
   const explorer = new GitHubGistExplorer(context);
 
-  const sortBy: string = ConfigurationManager.get("explorer", "sortBy");
-  const ascending: boolean = ConfigurationManager.get("explorer", "ascending") === "True";
+  const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
+  const ascending: boolean = ConfigurationManager.getInstance().explorer.ascending;
 
   VSCode.executeCommand("setContext", "ascending", ascending)
     .then(() => {

@@ -36,25 +36,20 @@
 	"main": "./dist/extension.js",
 	"contributes": {
 		"viewsContainers": {
-			"activitybar": [
-				{
-					"id": "github-gist-explorer",
-					"title": "GitHub Gist Explorer",
-					"icon": "media/static/img/github.svg"
-				}
-			]
+			"activitybar": [{
+				"id": "github-gist-explorer",
+				"title": "GitHub Gist Explorer",
+				"icon": "media/static/img/github.svg"
+			}]
 		},
 		"views": {
-			"github-gist-explorer": [
-				{
-					"id": "GitHubGistExplorer",
-					"name": "Gist List"
-				}
-			],
+			"github-gist-explorer": [{
+				"id": "GitHubGistExplorer",
+				"name": "Gist List"
+			}],
 			"explorer": []
 		},
-		"commands": [
-			{
+		"commands": [{
 				"command": "GitHubGistExplorer.shortcut.newGist",
 				"title": "%extension.shortcut.new_gist%"
 			},
@@ -172,8 +167,7 @@
 			}
 		],
 		"menus": {
-			"commandPalette": [
-				{
+			"commandPalette": [{
 					"command": "GitHubGistExplorer.shortcut.newGist"
 				},
 				{
@@ -264,8 +258,7 @@
 				}
 			],
 			"editor/title": [],
-			"view/title": [
-				{
+			"view/title": [{
 					"command": "GitHubGistExplorer.refresh",
 					"when": "view == GitHubGistExplorer",
 					"group": "navigation"
@@ -300,8 +293,7 @@
 					"when": "view == GitHubGistExplorer"
 				}
 			],
-			"view/item/context": [
-				{
+			"view/item/context": [{
 					"command": "GitHubGistExplorer.editGist",
 					"when": "view == GitHubGistExplorer && viewItem =~ /^GitHubGistRoot/",
 					"group": "GitHubGistRoot@1"
@@ -363,50 +355,44 @@
 				}
 			]
 		},
-		"configuration": [
-			{
-				"title": "GitHub Gist Explorer",
-				"properties": {
-					"GithubGistExplorer.github.username": {
-						"type": "string",
-						"default": ""
-					},
-					"GithubGistExplorer.github.token": {
-						"type": "string",
-						"default": ""
-					},
-					"GithubGistExplorer.explorer.sortBy": {
-						"type": "string",
-						"default": "lastUpdated",
-						"enum": [
-							"Label",
-							"Last Updated",
-							"Created"
-						]
-					},
-					"GithubGistExplorer.explorer.ascending": {
-						"type": "string",
-						"default": "False",
-						"enum": [
-							"True",
-							"False"
-						]
-					},
-					"GithubGistExplorer.import.excludes": {
-						"type": "array",
-						"default": [
-							".git",
-							".gradle",
-							".vscode",
-							"node_modules"
-						]
-					}
+		"configuration": [{
+			"title": "GitHub Gist Explorer",
+			"properties": {
+				"GithubGistExplorer.github.username": {
+					"type": "string",
+					"default": ""
+				},
+				"GithubGistExplorer.github.token": {
+					"type": "string",
+					"default": ""
+				},
+				"GithubGistExplorer.explorer.sortBy": {
+					"type": "string",
+					"default": "lastUpdated",
+					"enum": [
+						"Label",
+						"Last Updated",
+						"Created"
+					]
+				},
+				"GithubGistExplorer.explorer.ascending": {
+					"type": "boolean",
+					"default": false
+				},
+				"GithubGistExplorer.import.excludes": {
+					"type": "array",
+					"default": [
+						".git",
+						".gradle",
+						".vscode",
+						"node_modules"
+					]
 				}
 			}
-		]
+		}]
 	},
 	"scripts": {
-		"watch": "tsc -watch -p ./",
+		"watch": "./node_modules/.bin/tsc -watch -p ./",
 		"compile": "./node_modules/.bin/webpack --mode none --config ./webpack.config.js",
 		"build": "./node_modules/.bin/webpack --mode production --config ./webpack.config.js",
 		"package": "npm run build && npm run webpack && ./node_modules/.bin/vsce package",

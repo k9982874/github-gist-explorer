@@ -9,10 +9,9 @@ import * as path from "path";
 
 import * as api from "./api";
 import * as constans from "./constans";
+import * as VSCode from "./vscode";
 
 import { IGist } from "./modules";
-
-import VSCode from "./vscode";
 
 @WebviewProvider
 export default class HistoryViewProvider implements IWebviewProvider {
