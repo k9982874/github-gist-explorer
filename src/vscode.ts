@@ -12,18 +12,18 @@ export class MessageChain {
   }
 
   showErrorMessage<T>(...argArray: any[]) {
-    argArray[0] = this.text;
-    return promisify<T>(window.showErrorMessage, window).apply(argArray, argArray);
+    argArray.unshift(this.text);
+    return promisify<T>(window.showErrorMessage, window).apply(window, argArray);
   }
 
   showWarningMessage<T>(...argArray: any[]) {
-    argArray[0] = this.text;
-    return promisify<T>(window.showWarningMessage, window).apply(argArray, argArray);
+    argArray.unshift(this.text);
+    return promisify<T>(window.showWarningMessage, window).apply(window, argArray);
   }
 
   showInformationMessage<T>(...argArray: any[]) {
-    argArray[0] = this.text;
-    return promisify<T>(window.showInformationMessage, window).apply(argArray, argArray);
+    argArray.unshift(this.text);
+    return promisify<T>(window.showInformationMessage, window).apply(window, argArray);
   }
 }
 
@@ -36,21 +36,21 @@ export function executeCommand<T>(...argArray: any[]) {
 }
 
 export function showErrorMessage<T>(...argArray: any[]) {
-  return promisify<T>(window.showErrorMessage, window).apply(argArray, argArray);
+  return promisify<T>(window.showErrorMessage, window).apply(window, argArray);
 }
 
 export function showWarningMessage<T>(...argArray: any[]) {
-  return promisify<T>(window.showWarningMessage, window).apply(argArray, argArray);
+  return promisify<T>(window.showWarningMessage, window).apply(window, argArray);
 }
 
 export function showInformationMessage<T>(...argArray: any[]) {
-  return promisify<T>(window.showInformationMessage, window).apply(argArray, argArray);
+  return promisify<T>(window.showInformationMessage, window).apply(window, argArray);
 }
 
 export const showInputBox = promisify(window.showInputBox, window);
 
 export function showQuickPick<T>(...argArray: any[]) {
-  return promisify<T>(window.showQuickPick, window).apply(argArray, argArray);
+  return promisify<T>(window.showQuickPick, window).apply(window, argArray);
 }
 
 export const showOpenDialog = promisify(window.showOpenDialog, window);

@@ -38,7 +38,7 @@ export default class GistTreeProvider implements TreeDataProvider<GistTreeItem> 
     return ConfigurationManager.check()
       .then(config => {
         const msg = i18n("explorer.listing_gist");
-        return waitfiy(`${constans.EXTENSION_NAME}: ${msg}`, () => {
+        return waitfiy(i18n("explorer.listing_gist"), () => {
             return Promise.all([api.list(config.github.username), api.listStarred()]);
           }, this)()
           .then(results => {

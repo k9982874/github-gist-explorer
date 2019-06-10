@@ -2,11 +2,15 @@ import * as vscode from "vscode";
 
 import promisify from "./promisify";
 
+import i18n from "./i18n";
+
+import * as constans from "./constans";
+
 export default function waitfiy<T>(text: string, func: (...argArray: any[]) => Promise<T>, thisArg?: any): (...argArray: any[]) => Promise<T> {
   const caller = function (...argArray: any[]): Thenable<T> {
     return vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
-      title: text,
+      title: `${constans.EXTENSION_NAME}: ${text}`,
     }, () => {
       return func.apply(thisArg, argArray);
     });

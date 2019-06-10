@@ -16,6 +16,7 @@
     "ok": "Ok",
     "import": "Import",
     "export": "Export",
+    "empty_file": "Empty File",
     "add_file_name": "Provide the name for new file here",
     "add_gist_description": "Provide the description for your new gist here",
     "add_gist_type": "Please decide the type for your new gist",
@@ -27,9 +28,18 @@
     "deleting_gist_confirmation": "Are you sure to delete gist %s?",
     "downloading_file": "Downloading file...",
     "edit_gist_description": "Provide the description for gist here",
+    "export_cancelled": "Export has been cancelled",
+    "export_completed": "Export has been completed",
+    "export_failed": "Export failed - %s",
+    "export_succeed": "Export succeed - %s",
+    "exporting_files": "Exporting file...",
+    "import_file": "Import File",
+    "import_cancelled": "Import has been cancelled",
+    "import_completed": "Import has been completed",
+    "importing_files": "Importing file...",
     "listing_gist": "Listing gist...",
     "listing_starred_gist": "Listing starred gist...",
-    "view_file": "View file contents",
+    "new_file": "New File",
     "pick_gist": "Please pick a gist to add",
     "public": "Public",
     "rename_file_name": "Provide the name for file here",
@@ -39,6 +49,8 @@
     "star_gist": "Staring gist...",
     "unstar_gist": "Unstaring gist...",
     "updating_file": "Updating file...",
-    "updating_gist": "Updating gist..."
+    "updating_gist": "Updating gist...",
+    "view_file": "View file contents",
+    "view_report": "View report"
   }
 }

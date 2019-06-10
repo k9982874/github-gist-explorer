@@ -268,15 +268,15 @@ export function renameFile(gistID: string, filename: string, newFilename: string
     });
 }
 
-export const getFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.downloading_file")}`, getFile);
-export const listWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.listing_gist")}`, list);
-export const listStarredWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.listing_starred_gist")}`, listStarred);
-export const addWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.creating_gist")}`, add);
-export const retrieveWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.retrieve_gist")}`, retrieve);
-export const updateWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.updating_gist")}`, update);
-export const destroyWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.deleting_gist")}`, destroy);
-export const starWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.star_gist")}`, star);
-export const unstarWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.unstar_gist")}`, unstar);
-export const updateFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.updating_file")}`, updateFile);
-export const deleteFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.deleting_file")}`, deleteFile);
-export const renameFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.renaming_file")}`, renameFile);
+export const getFileWaitable = waitfiy(i18n("explorer.downloading_file"), getFile);
+export const listWaitable = waitfiy(i18n("explorer.listing_gist"), list);
+export const listStarredWaitable = waitfiy(i18n("explorer.listing_starred_gist"), listStarred);
+export const addWaitable = waitfiy(i18n("explorer.creating_gist"), add);
+export const retrieveWaitable = waitfiy(i18n("explorer.retrieve_gist"), retrieve);
+export const updateWaitable = waitfiy(i18n("explorer.updating_gist"), update);
+export const destroyWaitable = waitfiy(i18n("explorer.deleting_gist"), destroy);
+export const starWaitable = waitfiy(i18n("explorer.star_gist"), star);
+export const unstarWaitable = waitfiy(i18n("explorer.unstar_gist"), unstar);
+export const updateFileWaitable = waitfiy(i18n("explorer.updating_file"), updateFile);
+export const deleteFileWaitable = waitfiy(i18n("explorer.deleting_file"), deleteFile);
+export const renameFileWaitable = waitfiy(i18n("explorer.renaming_file"), renameFile);

@@ -16,6 +16,7 @@
     "ok": "Ok",
     "import": "导入",
     "export": "导出",
+    "empty_file": "空文件",
     "add_file_name": "请为输入文件名描述",
     "add_gist_description": "请为新Gist输入描述",
     "add_gist_type": "请决定Gist的类型",
@@ -27,9 +28,18 @@
     "deleting_gist_confirmation": "确认删除%s吗？",
     "downloading_file": "文件下载中...",
     "edit_gist_description": "请为输入描述",
+    "export_cancelled": "取消导出",
+    "export_completed": "导出完成",
+    "export_failed": "导出失败 - %s",
+    "export_succeed": "导出成功 - %s",
+    "exporting_files": "文件导出中...",
+    "import_file": "导入文件",
+    "import_cancelled": "取消导入",
+    "import_completed": "导入成功",
+    "importing_files": "文件导入中...",
     "listing_gist": "同步列表中...",
     "listing_starred_gist": "同步收藏列表中...",
-    "view_file": "查看文件内容",
+    "new_file": "新建文件",
     "pick_gist": "请选择一个Gist",
     "public": "公开",
     "rename_file_name": "请为输入文件名描述",
@@ -39,6 +49,8 @@
     "star_gist": "添加收藏中...",
     "unstar_gist": "取消收藏中...",
     "updating_file": "更新文件中...",
-    "updating_gist": "更新中..."
+    "updating_gist": "更新中...",
+    "view_file": "查看文件内容",
+    "view_report": "查看报告"
   }
 }

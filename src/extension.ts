@@ -272,10 +272,10 @@ export class GitHubGistExplorer extends Subscriber {
               return filesystem.writefile(`${path}/${file.filename}`, content);
             })
             .then(() => {
-              return Promise.resolve(new Date().toLocaleString() + ": " + i18n("explorer.file_export_succed", file.filename));
+              return Promise.resolve(new Date().toLocaleString() + ": " + i18n("explorer.export_succeed", file.filename));
             })
             .catch(error => {
-              return Promise.resolve(new Date().toLocaleString() + ": " + i18n("explorer.file_export_failed", file.filename));
+              return Promise.resolve(new Date().toLocaleString() + ": " + i18n("explorer.export_failed", file.filename));
             });
         });
         return waiting(i18n("explorer.exporting_files"), () => Promise.all(tasks));
@@ -347,7 +347,7 @@ export class GitHubGistExplorer extends Subscriber {
         }
 
         const gist = node.metadata as IGist;
-        return api.updateFileWaitable(gist.id, filename, content || i18n("empty_file"))
+        return api.updateFileWaitable(gist.id, filename, content || i18n("explorer.empty_file"))
           .then(() => {
             this.treeProvider.refresh();
           });
