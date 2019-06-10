@@ -4,6 +4,9 @@ import promisify from "./promisify";
 
 import i18n from "./i18n";
 
+import * as constans from "./constans";
+
+
 export class MessageChain {
   private text: string;
 
@@ -13,17 +16,17 @@ export class MessageChain {
 
   showErrorMessage<T>(...argArray: any[]) {
     argArray.unshift(this.text);
-    return promisify<T>(window.showErrorMessage, window).apply(window, argArray);
+    return showErrorMessage(...argArray);
   }
 
   showWarningMessage<T>(...argArray: any[]) {
     argArray.unshift(this.text);
-    return promisify<T>(window.showWarningMessage, window).apply(window, argArray);
+    return showWarningMessage(...argArray);
   }
 
   showInformationMessage<T>(...argArray: any[]) {
     argArray.unshift(this.text);
-    return promisify<T>(window.showInformationMessage, window).apply(window, argArray);
+    return showInformationMessage(...argArray);
   }
 }
 
@@ -36,14 +39,26 @@ export function executeCommand<T>(...argArray: any[]) {
 }
 
 export function showErrorMessage<T>(...argArray: any[]) {
+  const modal = (argArray.length > 1) && (argArray[1] instanceof Object) && argArray[1].modal;
+  if (!modal) {
+    argArray[0] = `${constans.EXTENSION_NAME}: ${argArray[0]}`;
+  }
   return promisify<T>(window.showErrorMessage, window).apply(window, argArray);
 }
 
 export function showWarningMessage<T>(...argArray: any[]) {
+  const modal = (argArray.length > 1) && (argArray[1] instanceof Object) && argArray[1].modal;
+  if (!modal) {
+    argArray[0] = `${constans.EXTENSION_NAME}: ${argArray[0]}`;
+  }
   return promisify<T>(window.showWarningMessage, window).apply(window, argArray);
 }
 
 export function showInformationMessage<T>(...argArray: any[]) {
+  const modal = (argArray.length > 1) && (argArray[1] instanceof Object) && argArray[1].modal;
+  if (!modal) {
+    argArray[0] = `${constans.EXTENSION_NAME}: ${argArray[0]}`;
+  }
   return promisify<T>(window.showInformationMessage, window).apply(window, argArray);
 }
 

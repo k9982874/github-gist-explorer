@@ -172,11 +172,10 @@ export default class ShortCut {
   }
 
   importFolder() {
-    /*
     ConfigurationManager.check()
       .then(config => {
         const options = {
-          openLabel: i18n("ok"),
+          openLabel: i18n("explorer.import"),
           canSelectFiles: false,
           canSelectFolders: true,
           canSelectMany: false
@@ -201,6 +200,5 @@ export default class ShortCut {
         VSCode.showWarningMessage(error.message);
         VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
       });
-    */
   }
 }

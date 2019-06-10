@@ -3,6 +3,7 @@ import i18n from "./i18n";
 import { CancellationToken } from "vscode";
 
 import * as fs from "fs";
+import * as path from "path";
 import * as mkdirp from "mkdirp";
 import * as rimraf from "rimraf";
 
@@ -35,10 +36,24 @@ export function normalizeNFC(items: string | string[]): string | string[] {
   return items.normalize("NFC");
 }
 
-export function readdir(path: string): Promise<string[]> {
+export function readdir(dir: string): Promise<string[]> {
   return new Promise<string[]>((resolve, reject) => {
-    fs.readdir(path, (error, children) => handleResult(resolve, reject, error, normalizeNFC(children)));
+    fs.readdir(dir, (error, children) => handleResult(resolve, reject, error, normalizeNFC(children)));
   });
+}
+
+export function walkdir(dir: string): Promise<string[]> {
+  return stat(dir)
+    .then(s => {
+      if (s.isDirectory()) {
+        return readdir(dir)
+          .then(result => {
+            return Promise.all(result.map(v => path.join(dir, v)));
+          });
+      } else {
+        return Promise.resolve([ dir ]);
+      }
+    });
 }
 
 export function stat(path: string): Promise<fs.Stats> {
