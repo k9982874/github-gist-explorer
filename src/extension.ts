@@ -131,7 +131,7 @@ export class GitHubGistExplorer extends Subscriber {
 
   @Command("GitHubGistExplorer.shortcut.importFolder")
   importIt() {
-    this.shortcut.importFolder();
+    this.shortcut.importFolder(this.treeProvider);
   }
 
   @Command("GitHubGistExplorer.shortcut.newGist")

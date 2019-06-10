@@ -1,6 +1,6 @@
 import i18n from "./i18n";
 
-import { window, Uri } from "vscode";
+import { window, workspace, Uri } from "vscode";
 
 import * as path from "path";
 
@@ -11,6 +11,8 @@ import * as filesystem from "./filesystem";
 import * as constans from "./constans";
 import * as api from "./api";
 import * as VSCode from "./vscode";
+
+import { waiting } from "./waitfiy";
 
 import { IGist } from "./modules";
 
@@ -30,13 +32,13 @@ export default class ShortCut {
         );
       })
       .then((gist: IGist) => {
-        if (gist === undefined) {
+        if (!gist) {
           const msg = i18n("error.gist_required");
           return Promise.reject(new Error(msg));
         }
 
         const options = {
-          value: filename === undefined ? "" : path.basename(filename),
+          value: filename ? path.basename(filename) : "",
           prompt: i18n("explorer.add_file_name")
         };
         return VSCode.showInputBox(options)
@@ -45,12 +47,10 @@ export default class ShortCut {
               const msg = i18n("error.file_name_required");
               return Promise.reject(new Error(msg));
             }
-            return Promise.resolve([ gist.id, filename ]);
+            return Promise.resolve({ gistID: gist.id, filename });
           });
       })
-      .then(results => {
-        const [ gistID, filename ] = results;
-
+      .then(({ gistID, filename }) => {
         if (gistID) {
           return api.updateFileWaitable(gistID, filename, content);
         }
@@ -71,12 +71,9 @@ export default class ShortCut {
               }
               return Promise.resolve({ type, description });
             })
-            .then(result => {
-              const file = {
-                name: filename,
-                content
-              };
-              return api.addWaitable(result.type, result.description || "", [ file ]);
+            .then(({ type, description }) => {
+              const file = { name: filename, content };
+              return api.addWaitable(type, description || "", [ file ]);
             });
           });
       });
@@ -171,26 +168,88 @@ export default class ShortCut {
       });
   }
 
-  importFolder() {
+  importFolder(treeProvider: GistTreeProvider) {
     ConfigurationManager.check()
       .then(config => {
         const options = {
+          defaultUri: undefined,
           openLabel: i18n("explorer.import"),
           canSelectFiles: false,
           canSelectFolders: true,
           canSelectMany: false
         };
+
+        if (workspace.rootPath) {
+          options.defaultUri = Uri.file(workspace.rootPath);
+        }
+
         return VSCode.showOpenDialog(options)
           .then(uris => {
             if (!uris || uris.length === 0) {
-              return Promise.resolve([]);
+              return Promise.resolve({});
             }
 
-            const basePath = uris.shift().path;
-            return filesystem.walkdir(basePath);
+            const pub: string = i18n("explorer.public");
+            const sec: string = i18n("explorer.secret");
+
+            return VSCode.showQuickPick(
+                [ pub, sec ],
+                {
+                  placeHolder: i18n("explorer.add_gist_type")
+                }
+              )
+              .then(selected => {
+                if (!selected) {
+                  return Promise.resolve({});
+                }
+
+                return Promise.resolve({
+                  type: selected === pub ? constans.GistType.Public : constans.GistType.Secret,
+                  basePath: uris.shift().path
+                });
+              });
           })
-          .then(results => {
-            filesystem.writefile('/tmp/log', results.join("\n"));
+          .then(({ type, basePath }) => {
+            if (!type || !basePath) {
+              return Promise.resolve(undefined);
+            }
+
+            return filesystem.walkdir(basePath, ConfigurationManager.import.excludes)
+              .then(result => {
+                const tasks = result.map(v => {
+                  return filesystem.readfile(v)
+                    .then(content => {
+                      const filename = v.substring(basePath.length + 1).replace(/\//g, "_");
+                      return Promise.resolve({
+                        filename,
+                        content
+                      });
+                    });
+                });
+
+                return Promise.resolve(tasks);
+              })
+              .then(tasks => {
+                if (tasks.length === 0) {
+                  return Promise.resolve(undefined);
+                }
+
+                return waiting<IGist>(i18n("explorer.importing_files"), () => {
+                    return Promise.all(tasks)
+                      .then(files => {
+                        const name = path.basename(basePath);
+                        return api.add(type, name, files);
+                      });
+                  });
+              });
+          })
+          .then(gist => {
+            if (gist) {
+              VSCode.message("explorer.import_completed").showInformationMessage();
+              treeProvider.refresh();
+            } else {
+              VSCode.message("explorer.import_cancelled").showWarningMessage();
+            }
           })
           .catch(error => {
             VSCode.showErrorMessage(error.message);

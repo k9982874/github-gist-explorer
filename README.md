@@ -5,6 +5,8 @@
 
 *Please star the repository whether you like this extension!*
 
+## 20190610 New Feature: Import/Export Gist
+
 ## Key Features
 ```
 1. List all your GitHub gists.
@@ -18,6 +20,9 @@
 9. Allow check the gist history in Visual Studio Code directly.
 10. Allow view the file contents of history file.
 11. Allow compare the history with the latest version.
+12. Allow export the gist to folder.
+13. Allow import a local file to specific gist.
+14. Allow import a local folder.
 ```
 
 ## How to use

@@ -42,13 +42,16 @@ export function readdir(dir: string): Promise<string[]> {
   });
 }
 
-export function walkdir(dir: string): Promise<string[]> {
+export function walkdir(dir: string, exculds?: string[]): Promise<string[]> {
   return stat(dir)
     .then(s => {
       if (s.isDirectory()) {
         return readdir(dir)
           .then(result => {
-            return Promise.all(result.map(v => path.join(dir, v)));
+            return Promise.all(result.filter(v => !(exculds || []).includes(v)).map(v => walkdir(path.join(dir, v), exculds)))
+              .then(result => {
+                return Promise.resolve([].concat.apply([], result));
+              });
           });
       } else {
         return Promise.resolve([ dir ]);
