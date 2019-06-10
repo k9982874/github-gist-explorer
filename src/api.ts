@@ -1,5 +1,3 @@
-import { workspace } from "vscode";
-
 import axios, { AxiosRequestConfig } from "axios";
 
 import waitfiy from "./waitfiy";
@@ -11,265 +9,263 @@ import GistModule from "./modules/gist";
 
 import i18n from "./i18n";
 
+import ConfigurationManager from "./configuration";
+
 export interface INewFile {
   filename: string;
-  content: string;
+  content: string | Buffer;
 }
 
-export default class API {
-  constructor(public readonly token?: string) {
+function createRequestConfig(): AxiosRequestConfig {
+  const options: AxiosRequestConfig = {
+    headers: {
+      "Content-Type": "application/json"
+    }
+  };
+
+  const token = ConfigurationManager.github.token;
+  if (token) {
+    options.headers.authorization = `token ${token}`;
   }
 
-  createRequestConfig(): AxiosRequestConfig {
-    const options: AxiosRequestConfig = {
-      headers: {
-        "Content-Type": "application/json"
+  return options;
+}
+
+export function getFile(url: string): Promise<any> {
+  const options: AxiosRequestConfig = createRequestConfig();
+  options.transformResponse = [
+    (data, headers) => data
+  ];
+
+  return axios.get(url, options)
+    .then(response => {
+      if (response.status !== 200) {
+        return Promise.reject(new Error(response.statusText));
+      }
+
+      return response.data;
+    });
+}
+
+export function list(username: string): Promise<IGist[]> {
+  const options: AxiosRequestConfig = createRequestConfig();
+
+  const p = function (page: number, results: IGist[]) {
+    return axios.get(`${constans.GITHUB_API_URL}/users/${username}/gists?page=${page}`, options)
+      .then(response => {
+        if (response.status !== 200) {
+          return Promise.resolve([]);
+        }
+
+        const data = response.data.map(value => new GistModule(value));
+        return Promise.resolve(data);
+      })
+      .then(data => {
+        if (data.length === 0) {
+          return Promise.resolve(results);
+        }
+        return p(page + 1, [...results, ...data]);
+      })
+      .catch(error => {
+        return Promise.resolve([]);
+      });
+  };
+
+  return p(1, []);
+}
+
+export function listStarred(): Promise<IGist[]> {
+  const options: AxiosRequestConfig = createRequestConfig();
+
+  const p = function (page: number, results: IGist[]) {
+    return axios.get(`${constans.GITHUB_API_URL}/gists/starred?page=${page}`, options)
+      .then(response => {
+        if (response.status !== 200) {
+          return Promise.resolve([]);
+        }
+
+        const data = response.data.map(value => new GistModule(value));
+        return Promise.resolve(data);
+      })
+      .then(data => {
+        if (data.length === 0) {
+          return Promise.resolve(results);
+        }
+        return p(page + 1, [...results, ...data]);
+      })
+      .catch(error => {
+        return Promise.resolve([]);
+      });
+  };
+
+  return p(1, []);
+}
+
+export function add(type: string, description: string, files?: INewFile[]): Promise<IGist> {
+  const options: AxiosRequestConfig = createRequestConfig();
+
+  const data = {
+    description,
+    public: type === constans.GistType.Public,
+    files: {}
+  };
+
+  if (files) {
+    data.files = files.reduce((pv, cv) => {
+      pv[cv.filename] = {
+        content: cv.content.toString()
+      };
+      return pv;
+    }, {});
+  } else {
+    const file = constans.CLASSIC_MOVIE_QUOTES[Math.floor(Math.random() * 100)];
+    data.files = {
+      [file.name]: {
+        content: file.words
       }
     };
-
-    if (this.token) {
-      options.headers.authorization = `token ${this.token}`;
-    }
-
-    return options;
   }
 
-  getFile(url: string): Promise<any> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
-    options.transformResponse = [
-      (data, headers) => data
-    ];
+  return axios.post(`${constans.GITHUB_API_URL}/gists`, data, options)
+    .then(response => {
+      if ((response.status !== 200) && (response.status !== 201)) {
+        return Promise.reject(new Error(response.statusText));
+      }
 
-    return axios.get(url, options)
-      .then(response => {
-        if (response.status !== 200) {
-          return Promise.reject(new Error(response.statusText));
-        }
+      return Promise.resolve(new GistModule(response.data));
+    });
+}
 
-        return response.data;
-      });
+export function retrieve(gistID: string, version?: string): Promise<IGist> {
+  const options: AxiosRequestConfig = createRequestConfig();
+
+  let url = `${constans.GITHUB_API_URL}/gists/${gistID}`;
+  if (version) {
+    url = url + `/${version}`;
   }
 
-  list(username: string): Promise<IGist[]> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
+  return axios.get(url, options)
+    .then(response => {
+      if ((response.status !== 200) && (response.status !== 201)) {
+        return Promise.reject(new Error(response.statusText));
+      }
 
-    const p = function (page: number, results: IGist[]) {
-      return axios.get(`${constans.GITHUB_API_URL}/users/${username}/gists?page=${page}`, options)
-        .then(response => {
-          if (response.status !== 200) {
-            return Promise.resolve([]);
-          }
+      const data = new GistModule(response.data);
+      return Promise.resolve(data);
+    });
+}
 
-          const data = response.data.map(value => new GistModule(value));
-          return Promise.resolve(data);
-        })
-        .then(data => {
-          if (data.length === 0) {
-            return Promise.resolve(results);
-          }
-          return p(page + 1, [...results, ...data]);
-        })
-        .catch(error => {
-          return Promise.resolve([]);
-        });
-    };
+export function update(gistID: string, description: string, files?: INewFile[]): Promise<IGist> {
+  const options: AxiosRequestConfig = createRequestConfig();
 
-    return p(1, []);
-  }
+  const data = {
+    gist_id: gistID,
+    description,
+    files: undefined
+  };
 
-  listStarred(): Promise<IGist[]> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
-
-    const p = function (page: number, results: IGist[]) {
-      return axios.get(`${constans.GITHUB_API_URL}/gists/starred?page=${page}`, options)
-        .then(response => {
-          if (response.status !== 200) {
-            return Promise.resolve([]);
-          }
-
-          const data = response.data.map(value => new GistModule(value));
-          return Promise.resolve(data);
-        })
-        .then(data => {
-          if (data.length === 0) {
-            return Promise.resolve(results);
-          }
-          return p(page + 1, [...results, ...data]);
-        })
-        .catch(error => {
-          return Promise.resolve([]);
-        });
-    };
-
-    return p(1, []);
-  }
-
-  add(type: string, description: string, files?: INewFile[]): Promise<IGist> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
-
-    const data = {
-      description,
-      public: type === constans.GistType.Public,
-      files: {}
-    };
-
-    if (files) {
-      data.files = files.reduce((pv, cv) => {
-        pv[cv.filename] = {
-          content: cv.content
-        };
-        return pv;
-      }, {});
-    } else {
-      const file = constans.CLASSIC_MOVIE_QUOTES[Math.floor(Math.random() * 100)];
-      data.files = {
-        [file.name]: {
-          content: file.words
-        }
+  if (files) {
+    data.files = files.reduce((pv, cv) => {
+      pv[cv.filename] = {
+        content: cv.content.toString()
       };
-    }
-
-    return axios.post(`${constans.GITHUB_API_URL}/gists`, data, options)
-      .then(response => {
-        if ((response.status !== 200) && (response.status !== 201)) {
-          return Promise.reject(new Error(response.statusText));
-        }
-
-        return Promise.resolve(new GistModule(response.data));
-      });
+      return pv;
+    }, {});
   }
 
-  retrieve(gistID: string, version?: string): Promise<IGist> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
+  return axios.patch(`${constans.GITHUB_API_URL}/gists/${gistID}`, data, options)
+    .then(response => {
+      if (response.status !== 200) {
+        return Promise.reject(new Error(response.statusText));
+      }
 
-    let url = `${constans.GITHUB_API_URL}/gists/${gistID}`;
-    if (version) {
-      url = url + `/${version}`;
-    }
+      return Promise.resolve(new GistModule(response.data));
+    });
+}
 
-    return axios.get(url, options)
-      .then(response => {
-        if ((response.status !== 200) && (response.status !== 201)) {
-          return Promise.reject(new Error(response.statusText));
-        }
+export function destroy(gistID: string): Promise<void> {
+  const options: AxiosRequestConfig = createRequestConfig();
 
-        const data = new GistModule(response.data);
-        return Promise.resolve(data);
-      });
-  }
+  return axios.delete(`${constans.GITHUB_API_URL}/gists/${gistID}`, options)
+    .then(response => {
+      if ((response.status !== 200) && (response.status !== 204)) {
+        return Promise.reject(new Error(response.statusText));
+      }
 
-  update(gistID: string, description: string, files?: INewFile[]): Promise<IGist> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
+      return Promise.resolve();
+    });
+}
 
-    const data = {
-      gist_id: gistID,
-      description,
-      files: undefined
-    };
+export function star(gistID: string): Promise<void> {
+  const options: AxiosRequestConfig = createRequestConfig();
 
-    if (files) {
-      data.files = files.reduce((pv, cv) => {
-        pv[cv.filename] = {
-          content: cv.content
-        };
-        return pv;
-      }, {});
-    }
+  return axios.put(`${constans.GITHUB_API_URL}/gists/${gistID}/star`, undefined, options)
+    .then(response => {
+      if ((response.status !== 200) && (response.status !== 204)) {
+        return Promise.reject(new Error(response.statusText));
+      }
 
-    return axios.patch(`${constans.GITHUB_API_URL}/gists/${gistID}`, data, options)
-      .then(response => {
-        if (response.status !== 200) {
-          return Promise.reject(new Error(response.statusText));
-        }
+      return Promise.resolve();
+    });
+}
 
-        return Promise.resolve(new GistModule(response.data));
-      });
-  }
+export function unstar(gistID: string): Promise<void> {
+  const options: AxiosRequestConfig = createRequestConfig();
 
-  destroy(gistID: string): Promise<void> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
+  return axios.delete(`${constans.GITHUB_API_URL}/gists/${gistID}/star`, options)
+    .then(response => {
+      if ((response.status !== 200) && (response.status !== 204)) {
+        return Promise.reject(new Error(response.statusText));
+      }
 
-    return axios.delete(`${constans.GITHUB_API_URL}/gists/${gistID}`, options)
-      .then(response => {
-        if ((response.status !== 200) && (response.status !== 204)) {
-          return Promise.reject(new Error(response.statusText));
-        }
+      return Promise.resolve();
+    });
+}
 
-        return Promise.resolve();
-      });
-  }
+export function updateFile(gistID: string, filename: string, content: string | Buffer): Promise<IGist> {
+  return update(gistID, undefined, [{ filename, content }]);
+}
 
-  star(gistID: string): Promise<void> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
+export function deleteFile(gistID: string, filename: string): Promise<void> {
+  const options: AxiosRequestConfig = createRequestConfig();
 
-    return axios.put(`${constans.GITHUB_API_URL}/gists/${gistID}/star`, undefined, options)
-      .then(response => {
-        if ((response.status !== 200) && (response.status !== 204)) {
-          return Promise.reject(new Error(response.statusText));
-        }
+  const data = {
+    files: {
+      [filename]: null
+    },
+    gist_id: gistID
+  };
 
-        return Promise.resolve();
-      });
-  }
+  return axios.patch(`${constans.GITHUB_API_URL}/gists/${gistID}`, data, options)
+    .then(response => {
+      if (response.status !== 200) {
+        return Promise.reject(new Error(response.statusText));
+      }
 
-  unstar(gistID: string): Promise<void> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
+      return Promise.resolve();
+    });
+}
 
-    return axios.delete(`${constans.GITHUB_API_URL}/gists/${gistID}/star`, options)
-      .then(response => {
-        if ((response.status !== 200) && (response.status !== 204)) {
-          return Promise.reject(new Error(response.statusText));
-        }
+export function renameFile(gistID: string, filename: string, newFilename: string): Promise<string> {
+  const options: AxiosRequestConfig = createRequestConfig();
 
-        return Promise.resolve();
-      });
-  }
+  const data = {
+    files: {
+      [filename]: {
+        filename: newFilename
+      }
+    },
+    gist_id: gistID
+  };
 
-  updateFile(gistID: string, filename: string, content: string): Promise<IGist> {
-    return this.update(gistID, undefined, [{ filename, content }]);
-  }
+  return axios.patch(`${constans.GITHUB_API_URL}/gists/${gistID}`, data, options)
+    .then(response => {
+      if (response.status !== 200) {
+        return Promise.reject(new Error(response.statusText));
+      }
 
-  deleteFile(gistID: string, filename: string): Promise<void> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
-
-    const data = {
-      files: {
-        [filename]: null
-      },
-      gist_id: gistID
-    };
-
-    return axios.patch(`${constans.GITHUB_API_URL}/gists/${gistID}`, data, options)
-      .then(response => {
-        if (response.status !== 200) {
-          return Promise.reject(new Error(response.statusText));
-        }
-
-        return Promise.resolve();
-      });
-  }
-
-  renameFile(gistID: string, filename: string, newFilename: string): Promise<string> {
-    const options: AxiosRequestConfig = this.createRequestConfig();
-
-    const data = {
-      files: {
-        [filename]: {
-          filename: newFilename
-        }
-      },
-      gist_id: gistID
-    };
-
-    return axios.patch(`${constans.GITHUB_API_URL}/gists/${gistID}`, data, options)
-      .then(response => {
-        if (response.status !== 200) {
-          return Promise.reject(new Error(response.statusText));
-        }
-
-        return Promise.resolve(newFilename);
-      });
-  }
+      return Promise.resolve(newFilename);
+    });
 }
 
 export const getFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.downloading_file")}`, getFile);
@@ -284,63 +280,3 @@ export const unstarWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explo
 export const updateFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.updating_file")}`, updateFile);
 export const deleteFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.deleting_file")}`, deleteFile);
 export const renameFileWaitable = waitfiy(`${constans.EXTENSION_NAME}: ${i18n("explorer.renaming_file")}`, renameFile);
-
-export function getFile(url: string): Promise<any> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).getFile(url);
-}
-
-export function list(username: string): Promise<IGist[]> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).list(username);
-}
-
-export function listStarred(): Promise<IGist[]> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).listStarred();
-}
-
-export function add(type: string, description: string, files?: INewFile[]): Promise<IGist> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).add(type, description, files);
-}
-
-export function retrieve(gistID: string, version?: string): Promise<IGist> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).retrieve(gistID, version);
-}
-
-export function update(gistID: string, description: string, files?: INewFile[]): Promise<IGist> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).update(gistID, description, files);
-}
-
-export function destroy(gistID: string): Promise<void> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).destroy(gistID);
-}
-
-export function star(gistID: string): Promise<void> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).star(gistID);
-}
-
-export function unstar(gistID: string): Promise<void> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).unstar(gistID);
-}
-
-export function updateFile(gistID: string, filename: string, content: string): Promise<IGist> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).updateFile(gistID, filename, content);
-}
-
-export function deleteFile(gistID: string, filename: string): Promise<void> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).deleteFile(gistID, filename);
-}
-
-export function renameFile(gistID: string, filename: string, newFilename: string): Promise<string> {
-  const token: string = workspace.getConfiguration("github").get("token");
-  return (new API(token)).renameFile(gistID, filename, newFilename);
-}

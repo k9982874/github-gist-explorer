@@ -95,7 +95,7 @@ export default class ShortCut {
       return;
     }
 
-    ConfigurationManager.getInstance().check()
+    ConfigurationManager.check()
       .then(config => {
         this.save(config, content, editor.document.fileName)
           .then(() => {
@@ -125,7 +125,7 @@ export default class ShortCut {
       return;
     }
 
-    ConfigurationManager.getInstance().check()
+    ConfigurationManager.check()
       .then(config => {
         return this.save(config, content, editor.document.fileName)
           .then(() => {
@@ -150,7 +150,7 @@ export default class ShortCut {
           return;
         }
 
-        ConfigurationManager.getInstance().check()
+        ConfigurationManager.check()
           .then(config => {
             return this.save(config, content)
               .then(() => {
@@ -173,7 +173,7 @@ export default class ShortCut {
 
   importFolder() {
     /*
-    ConfigurationManager.getInstance().check()
+    ConfigurationManager.check()
       .then(config => {
         const options = {
           openLabel: i18n("ok"),

@@ -24,39 +24,44 @@ export interface IConfiguration {
   import: IImport;
 }
 
-export default class ConfigurationManager implements IConfiguration {
-  private static instance: ConfigurationManager;
+export class ConfigurationManager implements IConfiguration {
+  private static has(scope: string, key: string): boolean {
+    return workspace.getConfiguration(`GithubGistExplorer.${scope}`).has(key)|| workspace.getConfiguration(scope).has(key);
+  }
 
-  static getInstance() {
-    if (!ConfigurationManager.instance) {
-      ConfigurationManager.instance = new ConfigurationManager();
-    }
-    return ConfigurationManager.instance;
+  private static get<T>(scope: string, key: string): T {
+    return workspace.getConfiguration(`GithubGistExplorer.${scope}`).get<T>(key) || workspace.getConfiguration(scope).get<T>(key);
+  }
+
+  private static set(scope: string, key: string, value: any): Promise<IConfiguration> {
+    return promisify(workspace.getConfiguration(`GithubGistExplorer.${scope}`).update, workspace)
+      .call(this, key, value, ConfigurationTarget.Global)
+      .then(() => {
+        this[scope][key] = value;
+        return Promise.resolve(this);
+      });
   }
 
   public readonly github = new class implements IGitHub {
-    get username(): string { return ConfigurationManager.getInstance().get<string>("github", "username") || ""; }
-    set username(value: string) { ConfigurationManager.getInstance().set("github", "username", value); }
+    get username(): string { return ConfigurationManager.get<string>("github", "username") || ""; }
+    set username(value: string) { ConfigurationManager.set("github", "username", value); }
 
-    get token(): string { return ConfigurationManager.getInstance().get<string>("github", "token") || ""; }
-    set token(value: string) { ConfigurationManager.getInstance().set("github", "token", value); }
+    get token(): string { return ConfigurationManager.get<string>("github", "token") || ""; }
+    set token(value: string) { ConfigurationManager.set("github", "token", value); }
   }();
 
   public readonly explorer = new class implements IExplorer {
-    get sortBy(): string { return ConfigurationManager.getInstance().get<string>("explorer", "sortBy"); }
-    set sortBy(value: string) { ConfigurationManager.getInstance().set("explorer", "sortBy", value); }
+    get sortBy(): string { return ConfigurationManager.get<string>("explorer", "sortBy"); }
+    set sortBy(value: string) { ConfigurationManager.set("explorer", "sortBy", value); }
 
-    get ascending(): boolean { return ConfigurationManager.getInstance().get<boolean>("explorer", "ascending"); }
-    set ascending(value: boolean) { ConfigurationManager.getInstance().set("explorer", "ascending", value); }
+    get ascending(): boolean { return ConfigurationManager.get<boolean>("explorer", "ascending"); }
+    set ascending(value: boolean) { ConfigurationManager.set("explorer", "ascending", value); }
   }();
 
   public readonly import = new class implements IImport {
-    get excludes(): string[] { return ConfigurationManager.getInstance().get<string[]>("import", "excludes"); }
-    set excludes(value: string[]) { ConfigurationManager.getInstance().set("import", "excludes", value); }
+    get excludes(): string[] { return ConfigurationManager.get<string[]>("import", "excludes"); }
+    set excludes(value: string[]) { ConfigurationManager.set("import", "excludes", value); }
   }();
-
-  private constructor() {
-  }
 
   check(): Promise<IConfiguration> {
     if (this.github.username.length === 0) {
@@ -75,21 +80,7 @@ export default class ConfigurationManager implements IConfiguration {
   affects(event: ConfigurationChangeEvent) {
     return event.affectsConfiguration("GithubGistExplorer.github.username") || event.affectsConfiguration("GithubGistExplorer.github.token");
   }
-
-  private has(scope: string, key: string): boolean {
-    return workspace.getConfiguration(`GithubGistExplorer.${scope}`).has(key)|| workspace.getConfiguration(scope).has(key);
-  }
-
-  private get<T>(scope: string, key: string): T {
-    return workspace.getConfiguration(`GithubGistExplorer.${scope}`).get<T>(key) || workspace.getConfiguration(scope).get<T>(key);
-  }
-
-  private set(scope: string, key: string, value: any): Promise<IConfiguration> {
-    return promisify(workspace.getConfiguration(`GithubGistExplorer.${scope}`).update, workspace)
-      .call(this, key, value, ConfigurationTarget.Global)
-      .then(() => {
-        this[scope][key] = value;
-        return Promise.resolve(this);
-      });
-  }
 }
+
+const instance = new ConfigurationManager();
+export default instance;

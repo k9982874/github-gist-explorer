@@ -52,7 +52,7 @@ export class GitHubGistExplorer extends Subscriber {
 
   getHomeDirectory(): string {
     const extensionPath: string = extensions.getExtension(constans.EXTENSION_ID).extensionPath;
-    const username: string = ConfigurationManager.getInstance().github.username;
+    const username: string = ConfigurationManager.github.username;
 
     return `${extensionPath}/${username}`;
   }
@@ -67,11 +67,11 @@ export class GitHubGistExplorer extends Subscriber {
 
   sort(sortBy: string, ascending?: boolean) {
     if (ascending === undefined) {
-      ascending = ConfigurationManager.getInstance().explorer.ascending;
+      ascending = ConfigurationManager.explorer.ascending;
     }
 
-    ConfigurationManager.getInstance().explorer.sortBy = sortBy;
-    ConfigurationManager.getInstance().explorer.ascending = ascending;
+    ConfigurationManager.explorer.sortBy = sortBy;
+    ConfigurationManager.explorer.ascending = ascending;
 
     this.treeProvider.sort(sortBy, ascending);
 
@@ -80,7 +80,7 @@ export class GitHubGistExplorer extends Subscriber {
 
   @Command("GitHubGistExplorer.sortByLabel")
   sortByLabel() {
-    const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
+    const sortBy: string = ConfigurationManager.explorer.sortBy;
     if (sortBy !== GistTreeSortBy.Label) {
       this.sort(GistTreeSortBy.Label);
     }
@@ -88,7 +88,7 @@ export class GitHubGistExplorer extends Subscriber {
 
   @Command("GitHubGistExplorer.sortByLastUpdated")
   sortByLastUpdated() {
-    const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
+    const sortBy: string = ConfigurationManager.explorer.sortBy;
     if (sortBy !== GistTreeSortBy.LastUpdated) {
       this.sort(GistTreeSortBy.LastUpdated);
     }
@@ -96,7 +96,7 @@ export class GitHubGistExplorer extends Subscriber {
 
   @Command("GitHubGistExplorer.sortByCreated")
   sortByCreated() {
-    const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
+    const sortBy: string = ConfigurationManager.explorer.sortBy;
     if (sortBy !== GistTreeSortBy.Created) {
       this.sort(GistTreeSortBy.Created);
     }
@@ -104,13 +104,13 @@ export class GitHubGistExplorer extends Subscriber {
 
   @Command("GitHubGistExplorer.ascending")
   ascending() {
-    const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
+    const sortBy: string = ConfigurationManager.explorer.sortBy;
     this.sort(sortBy, false);
   }
 
   @Command("GitHubGistExplorer.descending")
   descending() {
-    const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
+    const sortBy: string = ConfigurationManager.explorer.sortBy;
     this.sort(sortBy, true);
   }
 
@@ -253,7 +253,7 @@ export class GitHubGistExplorer extends Subscriber {
     const gist = node.metadata as IGist;
 
     const options = {
-      openLabel: "Export gist",
+      openLabel: i18n("explorer.export"),
       canSelectFiles: false,
       canSelectFolders: true,
       canSelectMany: false
@@ -325,11 +325,9 @@ export class GitHubGistExplorer extends Subscriber {
       .then(selected => {
         switch (selected) {
           case importFile:
-            this.importFile(node);
-            break;
+            return this.importFile(node);
           case newFile:
-            this.createFile(node);
-            break;
+            return this.createFile(node);
         }
       })
       .catch(error => {
@@ -341,7 +339,7 @@ export class GitHubGistExplorer extends Subscriber {
     const options = {
       prompt: i18n("explorer.add_file_name")
     };
-    VSCode.showInputBox(options)
+    return VSCode.showInputBox(options)
       .then(filename => {
         if (!filename) {
           VSCode.message("error.file_name_required").showWarningMessage();
@@ -360,12 +358,12 @@ export class GitHubGistExplorer extends Subscriber {
     const gist = node.metadata as IGist;
 
     const options = {
-      openLabel: i18n("explorer.ok"),
+      openLabel: i18n("explorer.import"),
       canSelectFiles: true,
       canSelectFolders: false,
       canSelectMany: true
     };
-    VSCode.showOpenDialog(options)
+    return VSCode.showOpenDialog(options)
       .then(uris => {
         if (!uris || uris.length === 0) {
           return Promise.resolve([]);
@@ -532,7 +530,7 @@ export class GitHubGistExplorer extends Subscriber {
 
   @Event("onDidChangeConfiguration")
   didChangeConfigurationHandle(event: ConfigurationChangeEvent) {
-    if (ConfigurationManager.getInstance().affects(event)) {
+    if (ConfigurationManager.affects(event)) {
       const home: string = this.getHomeDirectory();
       filesystem.rmrf(home).finally(() => {
         this.treeProvider.refresh();
@@ -575,8 +573,8 @@ export class GitHubGistExplorer extends Subscriber {
 export function activate(context: ExtensionContext) {
   const explorer = new GitHubGistExplorer(context);
 
-  const sortBy: string = ConfigurationManager.getInstance().explorer.sortBy;
-  const ascending: boolean = ConfigurationManager.getInstance().explorer.ascending;
+  const sortBy: string = ConfigurationManager.explorer.sortBy;
+  const ascending: boolean = ConfigurationManager.explorer.ascending;
 
   VSCode.executeCommand("setContext", "ascending", ascending)
     .then(() => {

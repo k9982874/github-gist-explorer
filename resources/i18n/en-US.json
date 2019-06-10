@@ -13,6 +13,9 @@
     "unknown_file_format": "Unknown file format"
   },
   "explorer": {
+    "ok": "Ok",
+    "import": "Import",
+    "export": "Export",
     "add_file_name": "Provide the name for new file here",
     "add_gist_description": "Provide the description for your new gist here",
     "add_gist_type": "Please decide the type for your new gist",

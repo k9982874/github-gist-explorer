@@ -13,6 +13,9 @@
     "unknown_file_format": "未知的文件类型"
   },
   "explorer": {
+    "ok": "Ok",
+    "import": "导入",
+    "export": "导出",
     "add_file_name": "请为输入文件名描述",
     "add_gist_description": "请为新Gist输入描述",
     "add_gist_type": "请决定Gist的类型",

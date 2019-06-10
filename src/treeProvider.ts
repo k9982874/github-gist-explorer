@@ -35,7 +35,7 @@ export default class GistTreeProvider implements TreeDataProvider<GistTreeItem> 
     this.items = [];
     this.starredItems = [];
 
-    return ConfigurationManager.getInstance().check()
+    return ConfigurationManager.check()
       .then(config => {
         const msg = i18n("explorer.listing_gist");
         return waitfiy(`${constans.EXTENSION_NAME}: ${msg}`, () => {
