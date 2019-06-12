@@ -102,10 +102,10 @@ export default class HistoryViewProvider implements IWebviewProvider {
             const uri = Uri.parse(`FileContent:${version} - ${data.filename}?${data.history}`);
             VSCode.showTextDocument(uri, { preview: true });
           } else if (action === compare) {
-            const latest = Uri.parse(`FileContent:${data.filename}?${data.lastest}`);
+            const latest = Uri.parse(`FileContent:${data.filename}?${data.latest}`);
             const history = Uri.parse(`FileContent:${data.filename}?${data.history}`);
 
-            const title = `${data.filename}: Lastest \u2194 ${version}`;
+            const title = `${data.filename}: Latest \u2194 ${version}`;
 
             commands.executeCommand("vscode.diff", latest, history, title, { preview: true });
           }

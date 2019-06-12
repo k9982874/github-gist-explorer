@@ -8,6 +8,8 @@
 ## 20190612 新功能：订阅用户的Gist
 ## 20190610 新功能：导入/导出gist
 
+[通过Visual Studio市场安装](https://marketplace.visualstudio.com/items?itemName=k9982874.github-gist-explorer)
+
 ## 功能描述
 ```
 1. 列出你拥有的gist。

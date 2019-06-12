@@ -1,5 +1,3 @@
-import Vuex from "vuex";
-
 import GistModule from "./GistModule";
 
 const storeOptions = {

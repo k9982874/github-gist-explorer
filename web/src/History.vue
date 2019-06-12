@@ -105,15 +105,15 @@ export default class History extends Vue {
   }
 
   onFileSelected(version: string, file: IFile) {
-    const lastestFile = this.files.find(v => v.filename === file.filename);
-    if (!lastestFile) {
+    const latestFile = this.files.find(v => v.filename === file.filename);
+    if (!latestFile) {
       return;
     }
 
     const data = {
       version,
       filename: file.filename,
-      lastest: lastestFile.rawURL,
+      latest: latestFile.rawURL,
       history: file.rawURL
     };
 

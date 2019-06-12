@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 import { Event, EventEmitter, TreeDataProvider, TreeItem } from "vscode";
 
 import * as api from "../api";
@@ -19,8 +21,62 @@ export class SubscriptionTreeProvider implements ITreeProvider, TreeDataProvider
   private readonly users: Map<string, IUser> = new Map();
   private readonly items: Map<string, IGist[]> = new Map();
 
+  getTreeItem(element: Node): TreeItem {
+    return element;
+  }
+
+  getChildren(element?: Node): Node[] | Promise<Node[]> {
+    if (element) {
+      switch (element.contextValue) {
+        case "User":
+          if (this.items.has(element.label)) {
+            const items = this.items.get(element.label);
+            if (items.length > 0) {
+              return items.map(v => new GistTreeItem(v));
+            }
+
+            return api.listWaitable(element.label)
+              .then(results => {
+                this.items.set(element.label, results);
+
+                return results.map(v => {
+                  return new GistTreeItem(v);
+                });
+              });
+          }
+          return [];
+        case "Gist":
+          return (element as GistTreeItem).metadata.files.map(f => {
+            const command = {
+              command: "GitHubGistExplorer.viewFile",
+              title: "View File"
+            };
+            return new FileTreeItem(f, command);
+          });
+      }
+    } else {
+      const items = [];
+      for (const v of this.users.values()) {
+        items.push(new UserTreeItem(v));
+      }
+
+      const ascending = Configuration.explorer.subscriptionAscending;
+
+      return items.sort((a, b) => {
+        const [x, y] = ascending ? [a, b] : [b, a];
+        if (x.label < y.label) {
+          return -1;
+        } else if (x.label > y.label) {
+          return 1;
+        }
+        return 0;
+      });
+    }
+  }
+
   @pending("explorer.retrieve_user")
   refresh(): Promise<void> {
+    this.users.clear();
     this.items.clear();
 
     const tasks = Configuration.explorer.subscriptions.map(v => api.retrieveUser(v));
@@ -93,56 +149,44 @@ export class SubscriptionTreeProvider implements ITreeProvider, TreeDataProvider
     this.sort(sortBy, true);
   }
 
-  getTreeItem(element: Node): TreeItem {
-    return element;
+  subscribe() {
+    const options = {
+      prompt: i18n("explorer.subscribe_gist")
+    };
+    return VSCode.showInputBox(options)
+      .then(login => {
+        if (login) {
+          const matchs = login.trim().replace(/^https:\/\/.*github.com\//, "").match(/^(.+)\/*/);
+          if (matchs.length === 0) {
+            VSCode.message("error.login_name_invalid").showWarningMessage();
+            return;
+          }
+
+          login = matchs.pop();
+
+          const subs = Configuration.explorer.subscriptions;
+          if (!subs.includes(login)) {
+            Configuration.explorer.subscriptions = [...subs, login];
+          }
+        }
+      })
+      .catch(error => {
+        VSCode.showErrorMessage(error.message);
+      });
   }
 
-  getChildren(element?: Node): Node[] | Promise<Node[]> {
-    if (element) {
-      switch (element.contextValue) {
-        case "User":
-          if (this.items.has(element.label)) {
-            const items = this.items.get(element.label);
-            if (items.length > 0) {
-              return items.map(v => new GistTreeItem(v));
-            }
-
-            return api.listWaitable(element.label)
-              .then(results => {
-                this.items.set(element.label, results);
-
-                return results.map(v => {
-                  return new GistTreeItem(v);
-                });
-              });
+  unsubscribe(commandId: string, node: UserTreeItem) {
+    VSCode.message("explorer.unsubscribe_gist_confirmation", node.label).showWarningMessage({ modal: true }, i18n("explorer.ok"))
+      .then(reply => {
+        if (reply) {
+          const subs = Configuration.explorer.subscriptions;
+          if (subs.includes(node.label)) {
+            Configuration.explorer.subscriptions = subs.filter(v => v !== node.label);
           }
-          return [];
-        case "Gist":
-          return (element as GistTreeItem).metadata.files.map(f => {
-            const command = {
-              command: "GitHubGistExplorer.viewFile",
-              title: "View File"
-            };
-            return new FileTreeItem(f, command);
-          });
-      }
-    } else {
-      const items = [];
-      for (const v of this.users.values()) {
-        items.push(new UserTreeItem(v));
-      }
-
-      const ascending = Configuration.explorer.subscriptionAscending;
-
-      return items.sort((a, b) => {
-        const [x, y] = ascending ? [a, b] : [b, a];
-        if (x.label < y.label) {
-          return -1;
-        } else if (x.label > y.label) {
-          return 1;
         }
-        return 0;
+      })
+      .catch(error => {
+        VSCode.showErrorMessage(error.message);
       });
-    }
   }
 }

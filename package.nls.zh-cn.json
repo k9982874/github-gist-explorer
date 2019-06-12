@@ -10,6 +10,8 @@
 	"extension.command.sort_by_label": "按名称排序",
 	"extension.command.sort_by_last_updated": "按最后更新时间排序",
 	"extension.command.sort_by_created": "按创建时间排序",
+	"extension.command.subscribe_gist": "订阅用户",
+	"extension.command.unsubscribe_gist": "取消订阅",
 	"extension.command.add_gist": "新建",
 	"extension.command.edit_gist": "编辑",
 	"extension.command.delete_gist": "删除",

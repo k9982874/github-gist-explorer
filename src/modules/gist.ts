@@ -15,7 +15,7 @@ export default class GistModule implements IGist {
   gitPushURL = "";
   htmlURL = "";
   files: IFile[] = [];
-  public = "";
+  public = true;
   createdAt = "";
   updatedAt = "";
   description = "";

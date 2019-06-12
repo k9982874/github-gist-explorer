@@ -40,20 +40,22 @@ export class GitHubGistExplorer extends Subscriber {
   @TextDocumentContentProvider("ExportReport")
   public readonly exportReportProvider: ContentProvider = new ContentProvider();
 
+  @TreeDataProvider("GistTree")
   @Command("GitHubGistExplorer.GistTree.sortByLabel", "sortByLabel")
   @Command("GitHubGistExplorer.GistTree.sortByLastUpdated", "sortByLastUpdated")
   @Command("GitHubGistExplorer.GistTree.sortByCreated", "sortByCreated")
   @Command("GitHubGistExplorer.GistTree.ascending", "ascending")
   @Command("GitHubGistExplorer.GistTree.descending", "descending")
-  @TreeDataProvider("GistTree")
   public readonly gistTree: GistTreeProvider = new GistTreeProvider();
 
+  @TreeDataProvider("SubscriptionTree")
+  @Command("GitHubGistExplorer.subscribeGist", "subscribe")
+  @Command("GitHubGistExplorer.unsubscribeGist", "unsubscribe")
   @Command("GitHubGistExplorer.SubscriptionTree.sortByLabel", "sortByLabel")
   @Command("GitHubGistExplorer.SubscriptionTree.sortByLastUpdated", "sortByLastUpdated")
   @Command("GitHubGistExplorer.SubscriptionTree.sortByCreated", "sortByCreated")
   @Command("GitHubGistExplorer.SubscriptionTree.ascending", "ascending")
   @Command("GitHubGistExplorer.SubscriptionTree.descending", "descending")
-  @TreeDataProvider("SubscriptionTree")
   public readonly subscriptionTree: SubscriptionTreeProvider = new SubscriptionTreeProvider();
 
   @Command("GitHubGistExplorer.shortcut.saveIt", "saveIt")
@@ -88,8 +90,8 @@ export class GitHubGistExplorer extends Subscriber {
     }
   }
 
+  @Command("GitHubGistExplorer.addGist")
   @Command("GitHubGistExplorer.shortcut.newGist")
-  @Command("GitHubGistExplorer.GistTree.addGist")
   addGist() {
     const options = {
       prompt: i18n("explorer.add_gist_description")
@@ -130,7 +132,7 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Command("GitHubGistExplorer.editGist")
-  editGist(node: GistTreeItem) {
+  editGist(commandId: string, node: GistTreeItem) {
     const gist: IGist = node.metadata;
 
     const options = {
@@ -139,10 +141,12 @@ export class GitHubGistExplorer extends Subscriber {
     };
     VSCode.showInputBox(options)
       .then(value => {
-        return api.updateWaitable(gist.id, value);
-      })
-      .then(() => {
-        this.gistTree.refresh();
+        if (value !== undefined) {
+          return api.updateWaitable(gist.id, value)
+            .then(() => {
+              this.gistTree.refresh();
+            });
+        }
       })
       .catch(error => {
         VSCode.showErrorMessage(error.message);
@@ -150,7 +154,7 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Command("GitHubGistExplorer.deleteGist")
-  deleteGist(node: GistTreeItem) {
+  deleteGist(commandId: string, node: GistTreeItem) {
     const gist: IGist = node.metadata;
 
     VSCode.message("explorer.deleting_gist_confirmation", gist.label).showWarningMessage({ modal: true }, i18n("explorer.ok"))
@@ -171,7 +175,7 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Command("GitHubGistExplorer.starGist")
-  starGist(node: GistTreeItem) {
+  starGist(commandId: string, node: GistTreeItem) {
     const gist: IGist = node.metadata;
     api.starWaitable(gist.id)
       .then(() => {
@@ -186,7 +190,7 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Command("GitHubGistExplorer.unstarGist")
-  unstarGist(node: GistTreeItem) {
+  unstarGist(commandId: string, node: GistTreeItem) {
     const gist: IGist = node.metadata;
     api.unstarWaitable(gist.id)
       .then(() => {
@@ -201,12 +205,12 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Command("GitHubGistExplorer.history")
-  history(node: GistTreeItem) {
+  history(commandId: string, node: GistTreeItem) {
     HistoryViewProvider.show(node.metadata);
   }
 
   @Command("GitHubGistExplorer.exportGist")
-  exportGist(node: GistTreeItem) {
+  exportGist(commandId: string, node: GistTreeItem) {
     const gist = node.metadata;
 
     const options = {
@@ -224,7 +228,7 @@ export class GitHubGistExplorer extends Subscriber {
         const path = uris.shift().path;
 
         const tasks = gist.files.map(file => {
-          return api.downloadFileWaitable(file.rawURL)
+          return api.downloadFile(file.rawURL)
             .then(content => {
               return filesystem.writefile(`${path}/${file.filename}`, content);
             })
@@ -261,7 +265,7 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Command("GitHubGistExplorer.paste")
-  paste(node: GistTreeItem) {
+  paste(commandId: string, node: GistTreeItem) {
     clipboardy.read()
       .then(content => {
         if (content.trim().length === 0) {
@@ -276,7 +280,7 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Command("GitHubGistExplorer.addFile")
-  addFile(node: GistTreeItem) {
+  addFile(commandId: string, node: GistTreeItem) {
     const importFile = i18n("explorer.import_file");
     const newFile = i18n("explorer.new_file");
 
@@ -356,7 +360,7 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Command("GitHubGistExplorer.editFile")
-  editFile(node: FileTreeItem) {
+  editFile(commandId: string, node: FileTreeItem) {
     const file: IFile = node.metadata;
 
     const home: string = this.getHomeDirectory();
@@ -413,7 +417,7 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Command("GitHubGistExplorer.deleteFile")
-  deleteFile(node: FileTreeItem) {
+  deleteFile(commandId: string, node: FileTreeItem) {
     const file: IFile = node.metadata;
 
     VSCode.message("explorer.deleting_file_confirmation", file.filename).showWarningMessage({ modal: true }, i18n("explorer.ok"))
@@ -435,7 +439,7 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Command("GitHubGistExplorer.renameFile")
-  renameFile(node: FileTreeItem) {
+  renameFile(commandId: string, node: FileTreeItem) {
     const file: IFile = node.metadata;
 
     const options = {
@@ -444,10 +448,15 @@ export class GitHubGistExplorer extends Subscriber {
     };
     VSCode.showInputBox(options)
       .then(value => {
-        if (!value) {
+        if (value === undefined) {
+          return;
+        }
+
+        if (value.length === 0) {
           VSCode.message("error.file_name_required").showWarningMessage();
           return;
         }
+
         return api.renameFileWaitable(file.gistID, file.filename, value)
           .then(() => {
             const home: string = this.getHomeDirectory();
@@ -463,7 +472,7 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Command("GitHubGistExplorer.reloadFile")
-  reloadFile(node: FileTreeItem) {
+  reloadFile(commandId: string, node: FileTreeItem) {
     const file: IFile = node.metadata;
 
     const home: string = this.getHomeDirectory();
@@ -491,10 +500,10 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Event("onDidChangeConfiguration")
-  didChangeConfigurationHandle(event: ConfigurationChangeEvent) {
+  didChangeConfigurationHandle(eventId: string, event: ConfigurationChangeEvent) {
     const changes = Configuration.affects(event);
-    if (changes !== undefined) {
-      if (changes === "GithubGistExplorer.explorer.subscriptions") {
+    if (changes.length > 0) {
+      if (changes.includes("GithubGistExplorer.explorer.subscriptions")) {
         this.subscriptionTree.refresh();
       } else {
         const home: string = this.getHomeDirectory();
@@ -506,7 +515,7 @@ export class GitHubGistExplorer extends Subscriber {
   }
 
   @Event("onDidSaveTextDocument")
-  didSaveTextDocumentHandle(doc: TextDocument) {
+  didSaveTextDocumentHandle(eventId: string, doc: TextDocument) {
     const home: string = this.getHomeDirectory();
     if (!doc.fileName.startsWith(home)) {
       return;

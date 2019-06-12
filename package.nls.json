@@ -10,6 +10,8 @@
 	"extension.command.sort_by_created": "Sort by Created",
 	"extension.command.ascending": "Ascending",
 	"extension.command.descending": "Descending",
+	"extension.command.subscribe_gist": "Subscribe Gist",
+	"extension.command.unsubscribe_gist": "Unsubscribe Gist",
 	"extension.command.add_gist": "Add Gist",
 	"extension.command.edit_gist": "Edit Gist",
 	"extension.command.delete_gist": "Delete Gist",

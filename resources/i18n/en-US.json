@@ -8,6 +8,7 @@
     "gist_type_required": "Gist type is required",
     "github_token_missing": "Please specify the token of GitHub.",
     "github_username_missing": "Please specify the username of GitHub.",
+    "login_name_invalid": "Please provide valid login name.",
     "open_file": "Forget open a file?",
     "operation_cancelled": "Operation cancelled",
     "unknown_file_format": "Unknown file format"
@@ -21,7 +22,7 @@
     "add_gist_description": "Provide the description for your new gist here",
     "add_gist_type": "Please decide the type for your new gist",
     "creating_gist": "Creating gist...",
-    "compare_file": "Compare with the lastest version",
+    "compare_file": "Compare with the latest version",
     "deleting_file": "Deleting file...",
     "deleting_file_confirmation": "Are you sure to delete file %s?",
     "deleting_gist": "Deleting gist...",
@@ -47,9 +48,12 @@
     "retrieve_user": "Retrieve user...",
     "secret": "Secret",
     "star_gist": "Staring gist...",
+    "subscribe_gist": "Subscribe gist",
     "unstar_gist": "Unstaring gist...",
     "updating_file": "Updating file...",
     "updating_gist": "Updating gist...",
+    "unsubscribe_gist": "Unsubscribe gist",
+    "unsubscribe_gist_confirmation": "Are you sure to unsubscribe gist %s?",
     "view_file": "View file contents",
     "view_report": "View report"
   }

@@ -49,8 +49,6 @@ export class GistTreeItem extends TreeItem {
   ) {
     super(metadata.label, TreeItemCollapsibleState.Collapsed);
 
-    this.contextValue = "Gist";
-
     if (starred) {
       this.contextValue = "GistStarrd";
 
@@ -58,6 +56,15 @@ export class GistTreeItem extends TreeItem {
         light: path.join(__filename, "../../../resources/light/star.svg"),
         dark: path.join(__filename, "../../../resources/dark/star.svg")
       };
+    } else {
+      this.contextValue = "Gist";
+
+      if (!metadata.public) {
+        this.iconPath = {
+          light: path.join(__filename, "../../../resources/light/folder-lock.svg"),
+          dark: path.join(__filename, "../../../resources/dark/folder-lock.svg")
+        };
+      }
     }
   }
 

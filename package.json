@@ -118,10 +118,6 @@
         "title": "%extension.command.sort_by_created%"
       },
       {
-        "command": "GitHubGistExplorer.GistTree.addGist",
-        "title": "%extension.command.add_gist%"
-      },
-      {
         "command": "GitHubGistExplorer.SubscriptionTree.refresh",
         "title": "%extension.command.refresh%",
         "icon": {
@@ -156,6 +152,18 @@
       {
         "command": "GitHubGistExplorer.SubscriptionTree.sortByCreated",
         "title": "%extension.command.sort_by_created%"
+      },
+      {
+        "command": "GitHubGistExplorer.subscribeGist",
+        "title": "%extension.command.subscribe_gist%"
+      },
+      {
+        "command": "GitHubGistExplorer.unsubscribeGist",
+        "title": "%extension.command.unsubscribe_gist%"
+      },
+      {
+        "command": "GitHubGistExplorer.addGist",
+        "title": "%extension.command.add_gist%"
       },
       {
         "command": "GitHubGistExplorer.editGist",
@@ -261,10 +269,6 @@
           "when": "false"
         },
         {
-          "command": "GitHubGistExplorer.GistTree.addGist",
-          "when": "false"
-        },
-        {
           "command": "GitHubGistExplorer.SubscriptionTree.refresh",
           "when": "false"
         },
@@ -286,6 +290,18 @@
         },
         {
           "command": "GitHubGistExplorer.SubscriptionTree.sortByCreated",
+          "when": "false"
+        },
+        {
+          "command": "GitHubGistExplorer.subscribeGist",
+          "when": "false"
+        },
+        {
+          "command": "GitHubGistExplorer.unsubscribeGist",
+          "when": "false"
+        },
+        {
+          "command": "GitHubGistExplorer.addGist",
           "when": "false"
         },
         {
@@ -374,11 +390,6 @@
           "group": "NavigationMenuGroup1@3"
         },
         {
-          "command": "GitHubGistExplorer.GistTree.addGist",
-          "when": "ExtensionLoaded && view == GistTree",
-          "group": "NavigationMenuGroup2@1"
-        },
-        {
           "command": "GitHubGistExplorer.SubscriptionTree.refresh",
           "when": "ExtensionLoaded && view == SubscriptionTree",
           "group": "navigation"
@@ -407,6 +418,16 @@
           "command": "GitHubGistExplorer.SubscriptionTree.sortByCreated",
           "when": "ExtensionLoaded && view == SubscriptionTree",
           "group": "NavigationMenuGroup1@3"
+        },
+        {
+          "command": "GitHubGistExplorer.addGist",
+          "when": "ExtensionLoaded && view == GistTree",
+          "group": "NavigationMenuGroup2@1"
+        },
+        {
+          "command": "GitHubGistExplorer.subscribeGist",
+          "when": "ExtensionLoaded && view == SubscriptionTree",
+          "group": "NavigationMenuGroup2@1"
         }
       ],
       "view/item/context": [
@@ -449,6 +470,11 @@
           "command": "GitHubGistExplorer.history",
           "when": "view == GistTree && viewItem =~ /^Gist/",
           "group": "GistMenuGroup5@1"
+        },
+        {
+          "command": "GitHubGistExplorer.unsubscribeGist",
+          "when": "view == SubscriptionTree && viewItem =~ /^User/",
+          "group": "GistMenuGroup6@1"
         },
         {
           "command": "GitHubGistExplorer.editFile",

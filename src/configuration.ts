@@ -92,20 +92,21 @@ export class Configuration implements IConfiguration {
     return Promise.resolve(this);
   }
 
-  affects(event: ConfigurationChangeEvent): string {
+  affects(event: ConfigurationChangeEvent): string[] {
+    const changes: string[] = [];
     if (event.affectsConfiguration("GithubGistExplorer.github.username")) {
-      return "GithubGistExplorer.github.username";
+      changes.push("GithubGistExplorer.github.username");
     }
 
     if (event.affectsConfiguration("GithubGistExplorer.github.username")) {
-      return "GithubGistExplorer.github.token";
+      changes.push("GithubGistExplorer.github.token");
     }
 
     if (event.affectsConfiguration("GithubGistExplorer.explorer.subscriptions")) {
-      return "GithubGistExplorer.explorer.subscriptions";
+      changes.push("GithubGistExplorer.explorer.subscriptions");
     }
 
-    return undefined;
+    return changes;
   }
 }
 

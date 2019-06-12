@@ -79,7 +79,7 @@ export interface IGist {
   gitPushURL: string;
   htmlURL: string;
   files: IFile[];
-  public: string;
+  public: boolean;
   createdAt: string;
   updatedAt: string;
   description: string;

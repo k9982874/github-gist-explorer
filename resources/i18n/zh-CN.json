@@ -8,6 +8,7 @@
     "gist_type_required": "请指定Gist类型",
     "github_token_missing": "请先设置GitHub令牌",
     "github_username_missing": "请先设置GitHub用户名",
+    "login_name_invalid": "请提供有效的登录用户名",
     "open_file": "请先打开一个要操作的文件",
     "operation_cancelled": "操作被取消",
     "unknown_file_format": "未知的文件类型"
@@ -47,9 +48,12 @@
     "retrieve_user": "正在拉取用户数据...",
     "secret": "私有",
     "star_gist": "添加收藏中...",
+    "subscribe_gist": "订阅用户",
     "unstar_gist": "取消收藏中...",
     "updating_file": "更新文件中...",
     "updating_gist": "更新中...",
+    "unsubscribe_gist": "取消订阅",
+    "unsubscribe_gist_confirmation": "确认取消订阅%s吗?",
     "view_file": "查看文件内容",
     "view_report": "查看报告"
   }

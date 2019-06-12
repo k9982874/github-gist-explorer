@@ -19,6 +19,24 @@ export class GistTreeProvider implements ITreeProvider, TreeDataProvider<Node> {
   private items: IGist[] = new Array();
   private starredItems: IGist[] = new Array();
 
+  getTreeItem(element: Node): TreeItem {
+    return element;
+  }
+
+  getChildren(element?: Node): Node[] {
+    if (element) {
+      if (element.contextValue.startsWith("Gist")) {
+        return (element as GistTreeItem).metadata.files.map(f => new FileTreeItem(f));
+      }
+      return [];
+    } else {
+      const items = this.items.map(value => new GistTreeItem(value));
+      const starredItems = this.starredItems.map(value => new GistTreeItem(value, true));
+
+      return [...starredItems, ...items];
+    }
+  }
+
   @validate
   @pending("explorer.listing_gist")
   refresh(): Promise<void> {
@@ -91,23 +109,5 @@ export class GistTreeProvider implements ITreeProvider, TreeDataProvider<Node> {
   descending() {
     const sortBy: string = Configuration.explorer.gistSortBy;
     this.sort(sortBy, true);
-  }
-
-  getTreeItem(element: Node): TreeItem {
-    return element;
-  }
-
-  getChildren(element?: Node): Node[] {
-    if (element) {
-      if (element.contextValue.startsWith("Gist")) {
-        return (element as GistTreeItem).metadata.files.map(f => new FileTreeItem(f));
-      }
-      return [];
-    } else {
-      const items = this.items.map(value => new GistTreeItem(value));
-      const starredItems = this.starredItems.map(value => new GistTreeItem(value, true));
-
-      return [...starredItems, ...items];
-    }
   }
 }

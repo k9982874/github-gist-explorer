@@ -14,7 +14,7 @@ export default class GistModule extends VuexModule implements IGist {
   gitPushURL = "";
   htmlURL = "";
   files: IFile[] = [];
-  public = "";
+  public = true;
   createdAt = "";
   updatedAt = "";
   description = "";

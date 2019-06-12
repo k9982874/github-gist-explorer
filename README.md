@@ -5,8 +5,10 @@
 
 *Please star the repository whether you like this extension!*
 
-## 20190612 New Feature: Subscribe the Gist of GitHub user
+## 20190612 New Feature: Subscribe the Gist
 ## 20190610 New Feature: Import/Export Gist
+
+[Install through Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=k9982874.github-gist-explorer)
 
 ## Key Features
 ```
