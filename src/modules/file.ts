@@ -1,4 +1,4 @@
-import { IFile } from ".";
+import { IFile } from "./interfaces";
 
 export default class FileModule implements IFile {
   gistID = "";

@@ -1,4 +1,4 @@
-import { IUser } from ".";
+import { IUser } from "./interfaces";
 
 export default class UserModule implements IUser {
   login = "";
@@ -19,6 +19,21 @@ export default class UserModule implements IUser {
   receivedEventsURL = "";
   type = "";
   siteAdmin = false;
+  profile = {
+    name: "",
+    company: "",
+    blog: "",
+    location: "",
+    email: "",
+    hireable: "",
+    bio: "",
+    publicRepos: 0,
+    publicGists: 0,
+    followers: 0,
+    following: 0,
+    createdAt: "",
+    updatedAt: ""
+  };
 
   constructor(data?: any) {
     if (data) {
@@ -40,6 +55,20 @@ export default class UserModule implements IUser {
       this.receivedEventsURL = data.received_events_url;
       this.type = data.type;
       this.siteAdmin = data.site_admin;
+
+      this.profile.name = data.name;
+      this.profile.company = data.company;
+      this.profile.blog = data.blog;
+      this.profile.location = data.location;
+      this.profile.email = data.email;
+      this.profile.hireable = data.hireable;
+      this.profile.bio = data.bio;
+      this.profile.publicRepos = data.publicRepos;
+      this.profile.publicGists = data.publicGists;
+      this.profile.followers = data.followers;
+      this.profile.following = data.following;
+      this.profile.createdAt = data.createdAt;
+      this.profile.updatedAt = data.updatedAt;
     }
   }
 }

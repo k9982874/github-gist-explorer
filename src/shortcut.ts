@@ -12,74 +12,68 @@ import * as constans from "./constans";
 import * as api from "./api";
 import * as VSCode from "./vscode";
 
-import { waiting } from "./waitfiy";
+import { loading } from "./waitify";
 
-import { IGist } from "./modules";
+import { ITreeProvider } from "./treeProviders";
 
-import GistModule from "./modules/gist";
+import { GistModule } from "./modules";
 
-import ConfigurationManager, { IConfiguration } from "./configuration";
-
-import GistTreeProvider from "./treeProvider";
+import Configuration, { validate } from "./configuration";
 
 export default class ShortCut {
-  private save(config: IConfiguration, content: string, filename?: string): Promise<IGist> {
-    return api.listWaitable(config.github.username)
-      .then(results => {
-        return VSCode.showQuickPick<IGist>(
-          [ ...results, new GistModule() ],
-          { placeHolder: i18n("explorer.pick_gist")}
-        );
-      })
-      .then((gist: IGist) => {
-        if (!gist) {
-          const msg = i18n("error.gist_required");
-          return Promise.reject(new Error(msg));
-        }
-
-        const options = {
-          value: filename ? path.basename(filename) : "",
-          prompt: i18n("explorer.add_file_name")
-        };
-        return VSCode.showInputBox(options)
-          .then(filename => {
-            if (!filename) {
-              const msg = i18n("error.file_name_required");
-              return Promise.reject(new Error(msg));
-            }
-            return Promise.resolve({ gistID: gist.id, filename });
-          });
-      })
-      .then(({ gistID, filename }) => {
-        if (gistID) {
-          return api.updateFileWaitable(gistID, filename, content);
-        }
-
-        const options = {
-          prompt: i18n("explorer.add_gist_description")
-        };
-        return VSCode.showInputBox(options)
-          .then(description => {
-            return VSCode.showQuickPick(
-              [ constans.GistType.Public, constans.GistType.Secret ],
-              { placeHolder: i18n("explorer.add_gist_type")}
-            )
-            .then(type => {
-              if (!type) {
-                const msg = i18n("error.gist_type_required");
-                return Promise.reject(new Error(msg));
-              }
-              return Promise.resolve({ type, description });
-            })
-            .then(({ type, description }) => {
-              const file = { name: filename, content };
-              return api.addWaitable(type, description || "", [ file ]);
-            });
-          });
-      });
+  constructor(public readonly treeProvider: ITreeProvider) {
   }
 
-  saveIt(treeProvider: GistTreeProvider) {
+  private async save(content: string, filename?: string): Promise<GistModule> {
+    const gistList = await api.listWaitable(Configuration.github.username);
+
+    const gist = await VSCode.showQuickPick<GistModule>(
+      [ ...gistList, new GistModule() ],
+      { placeHolder: i18n("explorer.pick_gist")}
+    );
+
+    if (gist === undefined) {
+      VSCode.message("error.gist_required").showWarningMessage();
+      return;
+    }
+
+    filename = await VSCode.showInputBox({
+      value: filename ? path.basename(filename) : "",
+      prompt: i18n("explorer.add_file_name")
+    });
+    if (filename === undefined) {
+      VSCode.message("error.file_name_required").showWarningMessage();
+      return;
+    }
+
+    // add file into exists gist
+    if (gist.id.length > 0) {
+      return await api.updateFileWaitable(gist.id, filename, content);
+    }
+
+    const description = await VSCode.showInputBox({
+      prompt: i18n("explorer.add_gist_description")
+    });
+
+    const pub: string = i18n("explorer.public");
+    const sec: string = i18n("explorer.secret");
+
+    const selected = await VSCode.showQuickPick(
+      [ pub, sec ],
+      { placeHolder: i18n("explorer.add_gist_type")}
+    );
+
+    if (!selected) {
+      VSCode.message("error.gist_type_required").showWarningMessage();
+      return;
+    }
+
+    const type = selected === pub ? constans.GistType.Public : constans.GistType.Secret;
+    return await api.addWaitable(type, description, [{ filename, content }]);
+  }
+
+  @validate
+  async saveIt() {
     const editor = window.activeTextEditor;
     if (!editor) {
       VSCode.message("error.open_file").showWarningMessage();
@@ -92,24 +86,18 @@ export default class ShortCut {
       return;
     }
 
-    ConfigurationManager.check()
-      .then(config => {
-        this.save(config, content, editor.document.fileName)
-          .then(() => {
-            treeProvider.refresh();
-          })
-          .catch(error => {
-            VSCode.showErrorMessage(error.message);
-            return Promise.resolve();
-          });
-      })
-      .catch(error => {
-        VSCode.showWarningMessage(error.message);
-        VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
-      });
+    try {
+      const gist = await this.save(content, editor.document.fileName);
+      if (gist) {
+        this.treeProvider.refresh();
+      }
+    } catch (error) {
+      VSCode.showErrorMessage(error.message);
+    }
   }
 
-  clipIt(treeProvider: GistTreeProvider) {
+  @validate
+  async clipIt() {
     const editor = window.activeTextEditor;
     if (!editor) {
       VSCode.message("error.open_file").showWarningMessage();
@@ -122,142 +110,101 @@ export default class ShortCut {
       return;
     }
 
-    ConfigurationManager.check()
-      .then(config => {
-        return this.save(config, content, editor.document.fileName)
-          .then(() => {
-            treeProvider.refresh();
-          })
-          .catch(error => {
-            VSCode.showErrorMessage(error.message);
-            return Promise.resolve();
-          });
-      })
-      .catch(error => {
-        VSCode.showWarningMessage(error.message);
-        VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
-      });
+    try {
+      const gist = await this.save(content, editor.document.fileName);
+      if (gist) {
+        this.treeProvider.refresh();
+      }
+    } catch (error) {
+      VSCode.showErrorMessage(error.message);
+    }
   }
 
-  pasteIt(treeProvider: GistTreeProvider) {
-    clipboardy.read()
-      .then(content => {
-        if (content.trim().length === 0) {
-          VSCode.message("error.empty_clipboard").showWarningMessage();
-          return;
-        }
+  @validate
+  async pasteIt() {
+    const content = await clipboardy.read();
+    if (content.trim().length === 0) {
+      VSCode.message("error.empty_clipboard").showWarningMessage();
+      return;
+    }
 
-        ConfigurationManager.check()
-          .then(config => {
-            return this.save(config, content)
-              .then(() => {
-                treeProvider.refresh();
-              })
-              .catch(error => {
-                VSCode.showErrorMessage(error.message);
-                return Promise.resolve();
-              });
-          })
-          .catch(error => {
-            VSCode.showWarningMessage(error.message);
-            VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
-          });
-      })
-      .catch(error => {
-        VSCode.showErrorMessage(error.message);
-      });
+    try {
+      const gist = await this.save(content);
+      if (gist) {
+        this.treeProvider.refresh();
+      }
+    } catch (error) {
+      VSCode.showErrorMessage(error.message);
+    }
   }
 
-  importFolder(treeProvider: GistTreeProvider) {
-    ConfigurationManager.check()
-      .then(config => {
-        const options = {
-          defaultUri: undefined,
-          openLabel: i18n("explorer.import"),
-          canSelectFiles: false,
-          canSelectFolders: true,
-          canSelectMany: false
-        };
+  @validate
+  async importFolder() {
+    try {
+      const options = {
+        defaultUri: undefined,
+        openLabel: i18n("explorer.import"),
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false
+      };
 
-        if (workspace.rootPath) {
-          options.defaultUri = Uri.file(workspace.rootPath);
-        }
+      if (workspace.rootPath) {
+        options.defaultUri = Uri.file(workspace.rootPath);
+      }
 
-        return VSCode.showOpenDialog(options)
-          .then(uris => {
-            if (!uris || uris.length === 0) {
-              return Promise.resolve({});
-            }
+      const uris = await VSCode.showOpenDialog(options);
+      if ((uris === undefined) || (uris.length === 0)) {
+        VSCode.message("explorer.import_cancelled").showWarningMessage();
+        return;
+      }
 
-            const pub: string = i18n("explorer.public");
-            const sec: string = i18n("explorer.secret");
+      const basePath = uris.shift().path;
 
-            return VSCode.showQuickPick(
-                [ pub, sec ],
-                {
-                  placeHolder: i18n("explorer.add_gist_type")
-                }
-              )
-              .then(selected => {
-                if (!selected) {
-                  return Promise.resolve({});
-                }
+      const pub: string = i18n("explorer.public");
+      const sec: string = i18n("explorer.secret");
 
-                return Promise.resolve({
-                  type: selected === pub ? constans.GistType.Public : constans.GistType.Secret,
-                  basePath: uris.shift().path
-                });
-              });
-          })
-          .then(({ type, basePath }) => {
-            if (!type || !basePath) {
-              return Promise.resolve(undefined);
-            }
+      const selected = await VSCode.showQuickPick(
+        [ pub, sec ],
+        { placeHolder: i18n("explorer.add_gist_type") }
+      );
 
-            return filesystem.walkdir(basePath, ConfigurationManager.import.excludes)
-              .then(result => {
-                const tasks = result.map(v => {
-                  return filesystem.readfile(v)
-                    .then(content => {
-                      const filename = v.substring(basePath.length + 1).replace(/\//g, "_");
-                      return Promise.resolve({
-                        filename,
-                        content
-                      });
-                    });
-                });
+      if (selected === undefined) {
+        VSCode.message("error.gist_type_required").showWarningMessage();
+        return;
+      }
 
-                return Promise.resolve(tasks);
-              })
-              .then(tasks => {
-                if (tasks.length === 0) {
-                  return Promise.resolve(undefined);
-                }
+      const type = selected === pub ? constans.GistType.Public : constans.GistType.Secret;
 
-                return waiting<IGist>(i18n("explorer.importing_files"), () => {
-                    return Promise.all(tasks)
-                      .then(files => {
-                        const name = path.basename(basePath);
-                        return api.add(type, name, files);
-                      });
-                  });
-              });
-          })
-          .then(gist => {
-            if (gist) {
-              VSCode.message("explorer.import_completed").showInformationMessage();
-              treeProvider.refresh();
-            } else {
-              VSCode.message("explorer.import_cancelled").showWarningMessage();
-            }
-          })
-          .catch(error => {
-            VSCode.showErrorMessage(error.message);
+      const tasks = (await filesystem.walkdir(basePath, Configuration.import.excludes)).map(v => {
+        return filesystem.readfile(v)
+          .then(content => {
+            const filename = v.substring(basePath.length + 1).replace(/\//g, "_");
+            return Promise.resolve({
+              filename,
+              content
+            });
           });
-      })
-      .catch(error => {
-        VSCode.showWarningMessage(error.message);
-        VSCode.executeCommand("workbench.action.openSettings", `@ext:${constans.EXTENSION_ID}`);
       });
+
+      if (tasks.length === 0) {
+        VSCode.message("explorer.import_cancelled").showWarningMessage();
+        return;
+      }
+
+      const gist = await loading<GistModule>("explorer.importing_files", () => {
+        return Promise.all(tasks)
+          .then(files => {
+            const name = path.basename(basePath);
+            return api.add(type, name, files);
+          });
+      });
+
+      if (gist) {
+        this.treeProvider.refresh();
+      }
+    } catch (error) {
+      VSCode.showErrorMessage(error.message);
+    }
   }
 }

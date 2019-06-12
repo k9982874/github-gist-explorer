@@ -1,10 +1,11 @@
-# Github Gist Explorer
+# GitHub Gist Explorer
 
 *使用Visual Studio Code管理你的GitHub Gists*
 ![Screenshot](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/guide-1.png)
 
 *如果新欢这个扩展，请不吝赐星！*
 
+## 20190612 新功能：订阅用户的Gist
 ## 20190610 新功能：导入/导出gist
 
 ## 功能描述
@@ -26,7 +27,7 @@
 ```
 
 ## 使用说明
-Github Gist Explorer需要GitHub用户名和GitHub令牌来访问你的GitHub Gist。
+GitHub Gist Explorer需要GitHub用户名和GitHub令牌来访问你的GitHub Gist。
 请继续阅读下面的内容来了解如何设置Github Gist Explorer。
 
 ## 获取GitHub用户名

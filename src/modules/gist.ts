@@ -1,4 +1,5 @@
-import { IGist, IFile, IUser, IHistory } from ".";
+import { IGist, IFile, IUser, IHistory } from "./interfaces";
+
 import UserModule from "./user";
 import FileModule from "./file";
 import HistoryModule from "./history";

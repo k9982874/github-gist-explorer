@@ -1,4 +1,4 @@
-import { IChangeStatus } from ".";
+import { IChangeStatus } from "./interfaces";
 
 export default class ChangeStatusModule implements IChangeStatus {
   total = 0;

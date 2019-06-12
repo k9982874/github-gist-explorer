@@ -30,7 +30,7 @@ export default class HistoryViewProvider implements IWebviewProvider {
 
   createWebviewPanel(): WebviewPanel {
     return window.createWebviewPanel(
-      "GitHubGistHistory",
+      "GistHistory",
       "GitHub Gist History",
       ViewColumn.One,
       {
@@ -99,11 +99,11 @@ export default class HistoryViewProvider implements IWebviewProvider {
 
         if (action) {
           if (action === view) {
-            const uri = Uri.parse(`GitHubGistHistoryContent:${version} - ${data.filename}?${data.history}`);
+            const uri = Uri.parse(`FileContent:${version} - ${data.filename}?${data.history}`);
             VSCode.showTextDocument(uri, { preview: true });
           } else if (action === compare) {
-            const latest = Uri.parse(`GitHubGistHistoryContent:${data.filename}?${data.lastest}`);
-            const history = Uri.parse(`GitHubGistHistoryContent:${data.filename}?${data.history}`);
+            const latest = Uri.parse(`FileContent:${data.filename}?${data.lastest}`);
+            const history = Uri.parse(`FileContent:${data.filename}?${data.history}`);
 
             const title = `${data.filename}: Lastest \u2194 ${version}`;
 

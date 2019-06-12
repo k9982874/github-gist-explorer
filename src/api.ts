@@ -1,15 +1,12 @@
 import axios, { AxiosRequestConfig } from "axios";
 
-import waitfiy from "./waitfiy";
+import waitify from "./waitify";
 
 import * as constans from "./constans";
 
-import { IGist } from "./modules";
-import GistModule from "./modules/gist";
+import { IGist, IUser, GistModule, UserModule } from "./modules";
 
-import i18n from "./i18n";
-
-import ConfigurationManager from "./configuration";
+import Configuration from "./configuration";
 
 export interface INewFile {
   filename: string;
@@ -23,7 +20,7 @@ function createRequestConfig(): AxiosRequestConfig {
     }
   };
 
-  const token = ConfigurationManager.github.token;
+  const token = Configuration.github.token;
   if (token) {
     options.headers.authorization = `token ${token}`;
   }
@@ -31,7 +28,7 @@ function createRequestConfig(): AxiosRequestConfig {
   return options;
 }
 
-export function getFile(url: string): Promise<any> {
+export function downloadFile(url: string): Promise<string> {
   const options: AxiosRequestConfig = createRequestConfig();
   options.transformResponse = [
     (data, headers) => data
@@ -44,6 +41,18 @@ export function getFile(url: string): Promise<any> {
       }
 
       return response.data;
+    });
+}
+
+export function retrieveUser(login: string): Promise<IUser> {
+  const options: AxiosRequestConfig = createRequestConfig();
+  return axios.get(`${constans.GITHUB_API_URL}/users/${login}`, options)
+    .then(response => {
+      if (response.status !== 200) {
+        return Promise.reject(new Error(response.statusText));
+      }
+
+      return Promise.resolve(new UserModule(response.data));
     });
 }
 
@@ -268,15 +277,16 @@ export function renameFile(gistID: string, filename: string, newFilename: string
     });
 }
 
-export const getFileWaitable = waitfiy(i18n("explorer.downloading_file"), getFile);
-export const listWaitable = waitfiy(i18n("explorer.listing_gist"), list);
-export const listStarredWaitable = waitfiy(i18n("explorer.listing_starred_gist"), listStarred);
-export const addWaitable = waitfiy(i18n("explorer.creating_gist"), add);
-export const retrieveWaitable = waitfiy(i18n("explorer.retrieve_gist"), retrieve);
-export const updateWaitable = waitfiy(i18n("explorer.updating_gist"), update);
-export const destroyWaitable = waitfiy(i18n("explorer.deleting_gist"), destroy);
-export const starWaitable = waitfiy(i18n("explorer.star_gist"), star);
-export const unstarWaitable = waitfiy(i18n("explorer.unstar_gist"), unstar);
-export const updateFileWaitable = waitfiy(i18n("explorer.updating_file"), updateFile);
-export const deleteFileWaitable = waitfiy(i18n("explorer.deleting_file"), deleteFile);
-export const renameFileWaitable = waitfiy(i18n("explorer.renaming_file"), renameFile);
+export const downloadFileWaitable = waitify("explorer.downloading_file", downloadFile);
+export const retrieveUserWaitable = waitify("explorer.retrieve_user", retrieveUser);
+export const listWaitable = waitify("explorer.listing_gist", list);
+export const listStarredWaitable = waitify("explorer.listing_starred_gist", listStarred);
+export const addWaitable = waitify("explorer.creating_gist", add);
+export const retrieveWaitable = waitify("explorer.retrieve_gist", retrieve);
+export const updateWaitable = waitify("explorer.updating_gist", update);
+export const destroyWaitable = waitify("explorer.deleting_gist", destroy);
+export const starWaitable = waitify("explorer.star_gist", star);
+export const unstarWaitable = waitify("explorer.unstar_gist", unstar);
+export const updateFileWaitable = waitify("explorer.updating_file", updateFile);
+export const deleteFileWaitable = waitify("explorer.deleting_file", deleteFile);
+export const renameFileWaitable = waitify("explorer.renaming_file", renameFile);

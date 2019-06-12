@@ -1,4 +1,5 @@
-import { IHistory, IUser, HistoryStatus } from ".";
+import { IHistory, IUser, HistoryStatus } from "./interfaces";
+
 import UserModule from "./user";
 import ChangeStatusModule from "./changeStatus";
 
