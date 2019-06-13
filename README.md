@@ -5,7 +5,7 @@
 
 *Please star the repository whether you like this extension!*
 
-## 20190612 New Feature: Subscribe the Gist
+## 20190613 New Feature: Subscribe the Gist
 ## 20190610 New Feature: Import/Export Gist
 
 [Install through Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=k9982874.github-gist-explorer)
@@ -55,16 +55,16 @@ For now, You have the user name and personal access token of GitHub. Please inpu
 ![Setup Extension](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/guide-5.png)
 
 ## How to add gist
-![Add Gist](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/add-gist.gif)
+![Add Gist](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/guide-add-gist.gif)
 
 ## Clip and Save!
-![Clip & Save](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/clip-and-save.gif)
+![Clip & Save](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/guide-clip-and-save.gif)
 
 ## Create from clipboard
 There are two ways to create gist from clipboard.
 1. Run the command from command palette.
 2. Run the command from right-click menu.
-![Paste](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/paste.gif)
+![Paste](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/guide-paste.gif)
 
 ## Work with history
-![History](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/history.gif)
+![History](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/guide-history.gif)

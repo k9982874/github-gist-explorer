@@ -2,9 +2,9 @@
 
 'use strict';
 
-const path = require('path');
-
 const webpack = require('webpack');
+
+const path = require('path');
 
 const TerserPlugin = require('terser-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
@@ -13,11 +13,15 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const config = {
   mode: 'none',
   target: 'node',
+  node: {
+    __dirname: false,
+    __filename: false,
+  },
   entry: path.resolve(__dirname, './src/extension.ts'),
   output: {
     filename: 'extension.js',
     path: path.join(__dirname, 'dist'),
-    libraryTarget: "commonjs",
+    libraryTarget: 'commonjs'
   },
   devtool: 'source-map',
   externals: {
@@ -26,10 +30,6 @@ const config = {
   resolve: {
     mainFields: ['module', 'main'],
     extensions: ['.ts', '.js']
-  },
-  node: {
-    __dirname: false,
-    __filename: false,
   },
   module: {
     rules: [{
@@ -45,14 +45,17 @@ const config = {
     }]
   },
   plugins: [
-    new CleanWebpackPlugin(),
-    new webpack.DefinePlugin({
-      $dirname: '__dirname',
-    })
+    new CleanWebpackPlugin()
   ]
 };
 
 module.exports = function (env, argv) {
+  const pluginDefinitions = {
+    $dirname: '__dirname',
+    'process.env.NODE_ENV': JSON.stringify('development'),
+    'process.env.ASSET_PATH': JSON.stringify(process.env.ASSET_PATH || '../../resources')
+  };
+
   if (argv.mode === 'production') {
     config.devtool = false;
 
@@ -64,6 +67,11 @@ module.exports = function (env, argv) {
         })
       ]
     };
+
+    pluginDefinitions['process.env.NODE_ENV'] = JSON.stringify('production');
   }
+
+  config.plugins.push(new webpack.DefinePlugin(pluginDefinitions));
+
   return config;
 }

@@ -12,8 +12,12 @@
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
+			"env": {
+				"NODE_ENV": "development",
+				"ASSET_PATH": "../../../resources"
+			},
 			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
+				"${workspaceFolder}/dist/**/*.js"
 			],
 			"preLaunchTask": "npm: watch"
 		}

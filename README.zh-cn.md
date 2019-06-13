@@ -5,7 +5,7 @@
 
 *如果新欢这个扩展，请不吝赐星！*
 
-## 20190612 新功能：订阅用户的Gist
+## 20190613 新功能：订阅用户的Gist
 ## 20190610 新功能：导入/导出gist
 
 [通过Visual Studio市场安装](https://marketplace.visualstudio.com/items?itemName=k9982874.github-gist-explorer)

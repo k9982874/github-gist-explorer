@@ -1,9 +1,9 @@
 {
-	"extension.shortcut.new_gist": "Github Gist Explorer: 新建Gist",
-	"extension.shortcut.save_it": "Github Gist Explorer: 保存当前文件内容",
-	"extension.shortcut.clip_it": "Github Gist Explorer: 剪藏当前选定文本",
-	"extension.shortcut.paste_it": "Github Gist Explorer: 从剪切板创建",
-	"extension.shortcut.importFolder": "Github Gist Explorer: 导入目录",
+	"extension.shortcut.new_gist": "GitHub Gist Explorer: 新建Gist",
+	"extension.shortcut.save_it": "GitHub Gist Explorer: 保存当前文件内容",
+	"extension.shortcut.clip_it": "GitHub Gist Explorer: 剪藏当前选定文本",
+	"extension.shortcut.paste_it": "GitHub Gist Explorer: 从剪切板创建",
+	"extension.shortcut.importFolder": "GitHub Gist Explorer: 导入目录",
 	"extension.command.refresh": "刷新",
 	"extension.command.ascending": "升序",
 	"extension.command.descending": "降序",
@@ -22,6 +22,7 @@
 	"extension.command.paste": "粘贴",
 	"extension.command.add_file": "新建文件",
 	"extension.command.edit_file": "编辑文件",
+	"extension.command.view_file": "查看文件",
 	"extension.command.delete_file": "删除文件",
 	"extension.command.rename_file": "重命名",
 	"extension.command.reload_file": "重新加载"

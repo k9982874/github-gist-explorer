@@ -1,9 +1,9 @@
 {
-	"extension.shortcut.new_gist": "Github Gist Explorer: New Gist",
-	"extension.shortcut.save_it": "Github Gist Explorer: Save It!",
-	"extension.shortcut.clip_it": "Github Gist Explorer: Clip It!",
-	"extension.shortcut.paste_it": "Github Gist Explorer: Paste It!",
-	"extension.shortcut.importFolder": "Github Gist Explorer: Import Folder",
+	"extension.shortcut.new_gist": "GitHub Gist Explorer: New Gist",
+	"extension.shortcut.save_it": "GitHub Gist Explorer: Save It!",
+	"extension.shortcut.clip_it": "GitHub Gist Explorer: Clip It!",
+	"extension.shortcut.paste_it": "GitHub Gist Explorer: Paste It!",
+	"extension.shortcut.importFolder": "GitHub Gist Explorer: Import Folder",
 	"extension.command.refresh": "Refresh",
 	"extension.command.sort_by_label": "Sort by Label",
 	"extension.command.sort_by_last_updated": "Sort by Last Updated",
@@ -22,6 +22,7 @@
 	"extension.command.paste": "Paste",
 	"extension.command.add_file": "Add File",
 	"extension.command.edit_file": "Edit File",
+	"extension.command.view_file": "View File",
 	"extension.command.delete_file": "Delete File",
 	"extension.command.rename_file": "Rename File",
 	"extension.command.reload_file": "Reload File"

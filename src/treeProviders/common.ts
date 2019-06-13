@@ -35,8 +35,8 @@ export class UserTreeItem extends TreeItem {
       this.iconPath = Uri.parse(user.avatarURL);
     } else {
       this.iconPath = {
-        light: path.join(__filename, "../../../resources/light/user.svg"),
-        dark: path.join(__filename, "../../../resources/dark/user.svg")
+        light: path.join(__filename, process.env.ASSET_PATH, "light/user.svg"),
+        dark: path.join(__filename, process.env.ASSET_PATH, "dark/user.svg")
       };
     }
   }
@@ -53,16 +53,16 @@ export class GistTreeItem extends TreeItem {
       this.contextValue = "GistStarrd";
 
       this.iconPath = {
-        light: path.join(__filename, "../../../resources/light/star.svg"),
-        dark: path.join(__filename, "../../../resources/dark/star.svg")
+        light: path.join(__filename, process.env.ASSET_PATH, "light/star.svg"),
+        dark: path.join(__filename, process.env.ASSET_PATH, "dark/star.svg")
       };
     } else {
       this.contextValue = "Gist";
 
       if (!metadata.public) {
         this.iconPath = {
-          light: path.join(__filename, "../../../resources/light/folder-lock.svg"),
-          dark: path.join(__filename, "../../../resources/dark/folder-lock.svg")
+          light: path.join(__filename, process.env.ASSET_PATH, "light/folder-lock.svg"),
+          dark: path.join(__filename, process.env.ASSET_PATH, "dark/folder-lock.svg")
         };
       }
     }
@@ -77,8 +77,8 @@ export class GistTreeItem extends TreeItem {
   }
 
   iconPath = {
-    light: path.join(__filename, "../../../resources/light/folder.svg"),
-    dark: path.join(__filename, "../../../resources/dark/folder.svg")
+    light: path.join(__filename, process.env.ASSET_PATH, "light/folder.svg"),
+    dark: path.join(__filename, process.env.ASSET_PATH, "dark/folder.svg")
   };
 }
 
@@ -108,8 +108,8 @@ export class FileTreeItem extends TreeItem {
   }
 
   iconPath = {
-    light: path.join(__filename, "../../../resources/light/snippet.svg"),
-    dark: path.join(__filename, "../../../resources/dark/snippet.svg")
+    light: path.join(__filename, process.env.ASSET_PATH, "light/snippet.svg"),
+    dark: path.join(__filename, process.env.ASSET_PATH, "dark/snippet.svg")
   };
 }
 
