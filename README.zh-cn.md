@@ -3,30 +3,31 @@
 *使用Visual Studio Code管理你的GitHub Gists*
 ![Screenshot](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/guide-1.png)
 
-*如果新欢这个扩展，请不吝赐星！*
+**如果新欢这个扩展，请不吝赐星！**
 
-## 20190613 新功能：订阅用户的Gist
-## 20190610 新功能：导入/导出gist
+**20190614 新功能：在gist或订阅中搜索**
+**20190613 新功能：订阅用户的gist**
+**20190610 新功能：导入/导出gis**
 
 [通过Visual Studio市场安装](https://marketplace.visualstudio.com/items?itemName=k9982874.github-gist-explorer)
 
 ## 功能描述
-```
-1. 列出你拥有的gist。
-2. 收藏/取消收藏gist。
-3. 创建公开/隐私gist。
-4. 编辑/删除gist。
-5. 创建、编辑、删除、重命名gist中的文件。
-6. 支持从活动的编辑器直接创建gist。
-7. 支持从选定文本创建gist。
-8. 支持从剪切板创建gist。
-9. 支持在Visual Studio Code中查看Gist历史。
-10. 支持查看历史文件内容。
-11. 支持历史文件与当前版本对比。
-12. 支持导出gist到文件夹。
-13. 支持导入本地文件到指定gist。
-14. 支持导入目录
-```
+> 列出你拥有的gist。
+> 收藏/取消收藏gist。
+> 创建公开/隐私gist。
+> 编辑/删除gist。
+> 创建、编辑、删除、重命名gist中的文件。
+> 支持从活动的编辑器直接创建gist。
+> 支持从选定文本创建gist。
+> 支持从剪切板创建gist。
+> 支持在Visual Studio Code中查看gist历史。
+> 支持查看历史文件内容。
+> 支持历史文件与当前版本对比。
+> 支持导出gist到文件夹。
+> 支持导入本地文件到指定gist。
+> 支持导入目录。
+> 支持在gist中搜索。
+> 支持在gist订阅中搜索。
 
 ## 使用说明
 GitHub Gist Explorer需要GitHub用户名和GitHub令牌来访问你的GitHub Gist。

@@ -3,31 +3,32 @@
 *Management your GitHub gists with Visual Studio Code*
 ![Screenshot](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/guide-1.png)
 
-*Please star the repository whether you like this extension!*
+**Please star the repository whether you like this extension!**
 
-## 20190613 New Feature: Subscribe the Gist
-## 20190610 New Feature: Import/Export Gist
+**20190614 New Feature: Search in the gists or subscriptions**
+**20190613 New Feature: Subscribe the gist**
+**20190610 New Feature: Import/Export gist**
 
 [Install through Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=k9982874.github-gist-explorer)
 
 ## Key Features
-```
-1. List all your GitHub gists.
-2. Star or unstar the gist.
-3. Create secet and public gist.
-4. Edit or delete the gist.
-5. Create, edit, delete, rename the files of gist.
-6. Allow create gist from file in activity editor directly.
-7. Allow create gist from the selection!
-8. Allow create gist from the clipboard.
-9. Allow check the gist history in Visual Studio Code directly.
-10. Allow view the file contents of history file.
-11. Allow compare the history with the latest version.
-12. Allow export the gist to folder.
-13. Allow import a local file to specific gist.
-14. Allow import a local folder.
-15. Allow subscribe gist.
-```
+> List all your GitHub gists.
+> Star or unstar the gist.
+> Create secet and public gist.
+> Edit or delete the gist.
+> Create, edit, delete, rename the files of gist.
+> Allow create gist from file in activity editor directly.
+> Allow create gist from the selection!
+> Allow create gist from the clipboard.
+> Allow check the gist history in Visual Studio Code directly.
+> Allow view the file contents of history file.
+> Allow compare the history with the latest version.
+> Allow export the gist to folder.
+> Allow import a local file to specific gist.
+> Allow import a local folder.
+> Allow subscribe gist.
+> Allow search in the gists.
+> Allow search in the subscriptions.
 
 ## How to use
 To use GitHub Gist Explorer management your GitHub Gist the user name and personal access token of GitHub is required.
