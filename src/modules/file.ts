@@ -8,6 +8,8 @@ export default class FileModule implements IFile {
   rawURL = "";
   size = 0;
 
+  content?: string;
+
   constructor(gistID?: string, data?: any) {
     this.gistID = gistID;
     this.filename = data.filename;

@@ -16,19 +16,16 @@ import { loading } from "./waitify";
 
 import { ITreeProvider } from "./treeProviders";
 
-import { GistModule } from "./modules";
+import { IGist, IFile } from "./modules";
 
 import Configuration, { validate } from "./configuration";
-
 export default class ShortCut {
-  constructor(public readonly treeProvider: ITreeProvider) {
+  constructor(public readonly treeProvider: ITreeProvider<IGist>) {
   }
 
-  private async save(content: string, filename?: string): Promise<GistModule> {
-    const gistList = await api.listWaitable(Configuration.github.username);
-
-    const gist = await VSCode.showQuickPick<GistModule>(
-      [ ...gistList, new GistModule() ],
+  private async save(content: string, filename?: string): Promise<IGist> {
+    const gist = await VSCode.showQuickPick<IGist>(
+      [ ...this.treeProvider.items, { id: "", label: "New Gist" } ],
       { placeHolder: i18n("explorer.pick_gist")}
     );
 
@@ -192,7 +189,7 @@ export default class ShortCut {
         return;
       }
 
-      const gist = await loading<GistModule>("explorer.importing_files", () => {
+      const gist = await loading<IGist>("explorer.importing_files", () => {
         return Promise.all(tasks)
           .then(files => {
             const name = path.basename(basePath);

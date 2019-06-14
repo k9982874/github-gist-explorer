@@ -49,9 +49,7 @@ export function walkdir(dir: string, exculds?: string[]): Promise<string[]> {
         return readdir(dir)
           .then(result => {
             return Promise.all(result.filter(v => !(exculds || []).includes(v)).map(v => walkdir(path.join(dir, v), exculds)))
-              .then(result => {
-                return Promise.resolve([].concat.apply([], result));
-              });
+              .then(result => [].concat.apply([], result));
           });
       } else {
         return Promise.resolve([ dir ]);

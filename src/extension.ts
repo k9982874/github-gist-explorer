@@ -29,6 +29,8 @@ import ContentProvider from "./contentProvider";
 
 import { GistTreeItem, FileTreeItem, GistTreeProvider, SubscriptionTreeProvider } from "./treeProviders";
 
+import { GistSearch, SubscriptionSearch } from "./search";
+
 @Extension
 export class GitHubGistExplorer extends Subscriber {
   @WebviewPanel("GistHistory")
@@ -64,6 +66,12 @@ export class GitHubGistExplorer extends Subscriber {
   @Command("GitHubGistExplorer.shortcut.importFolder", "importFolder")
   public readonly shortcut: ShortCut = new ShortCut(this.gistTree);
 
+  @Command("GitHubGistExplorer.shortcut.gistSearch", "show")
+  public readonly gistSearch: GistSearch = new GistSearch(this.gistTree);
+
+  @Command("GitHubGistExplorer.shortcut.subscriptionSearch", "show")
+  public readonly subscriptionSearch: SubscriptionSearch = new SubscriptionSearch(this.subscriptionTree);
+
   public readonly documentsSaving: string[] = new Array();
 
   constructor(context: ExtensionContext) {
@@ -90,7 +98,6 @@ export class GitHubGistExplorer extends Subscriber {
     }
   }
 
-  @Command("GitHubGistExplorer.addGist")
   @Command("GitHubGistExplorer.shortcut.newGist")
   addGist() {
     const options = {

@@ -1,10 +1,10 @@
+import i18n from "./i18n";
+
 import * as vscode from "vscode";
 
 import promisify from "./promisify";
 
 import * as constans from "./constans";
-
-import i18n from "./i18n";
 
 export default function waitify<T>(titleKey: string, func: (...argArray: any[]) => Promise<T>, thisArg?: any): (...argArray: any[]) => Promise<T> {
   const caller = function (...argArray: any[]): Thenable<T> {

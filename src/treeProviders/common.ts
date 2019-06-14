@@ -10,7 +10,9 @@ export enum TreeSortBy {
   Created = "Created",
 }
 
-export interface ITreeProvider {
+export interface ITreeProvider<T> {
+  readonly items: T[];
+
   refresh(): void | Promise<void>;
 
   sortByLabel();
@@ -29,6 +31,7 @@ export class UserTreeItem extends TreeItem {
 
     this.contextValue = "User";
 
+    this.id = user.id;
     this.description = user.profile.name;
 
     if (user.avatarURL) {

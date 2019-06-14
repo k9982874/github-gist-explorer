@@ -1,39 +1,25 @@
-import { IUser } from "./interfaces";
+import { IUser, IUserProfile } from "./interfaces";
 
 export default class UserModule implements IUser {
+  id = "";
   login = "";
-  id = 0;
-  nodeID = "";
-  avatarURL = "";
-  gravatarID = "";
-  url = "";
-  htmlURL = "";
-  followersURL = "";
-  followingURL = "";
-  gistsURL = "";
-  starredURL = "";
-  subscriptionsURL = "";
-  organizationsURL = "";
-  reposURL = "";
-  eventsURL = "";
-  receivedEventsURL = "";
-  type = "";
-  siteAdmin = false;
-  profile = {
-    name: "",
-    company: "",
-    blog: "",
-    location: "",
-    email: "",
-    hireable: "",
-    bio: "",
-    publicRepos: 0,
-    publicGists: 0,
-    followers: 0,
-    following: 0,
-    createdAt: "",
-    updatedAt: ""
-  };
+  nodeID?: string;
+  avatarURL?: string;
+  gravatarID?: string;
+  url?: string;
+  htmlURL?: string;
+  followersURL?: string;
+  followingURL?: string;
+  gistsURL?: string;
+  starredURL?: string;
+  subscriptionsURL?: string;
+  organizationsURL?: string;
+  reposURL?: string;
+  eventsURL?: string;
+  receivedEventsURL?: string;
+  type?: string;
+  siteAdmin?: boolean;
+  profile?: IUserProfile;
 
   constructor(data?: any) {
     if (data) {
@@ -56,19 +42,21 @@ export default class UserModule implements IUser {
       this.type = data.type;
       this.siteAdmin = data.site_admin;
 
-      this.profile.name = data.name;
-      this.profile.company = data.company;
-      this.profile.blog = data.blog;
-      this.profile.location = data.location;
-      this.profile.email = data.email;
-      this.profile.hireable = data.hireable;
-      this.profile.bio = data.bio;
-      this.profile.publicRepos = data.publicRepos;
-      this.profile.publicGists = data.publicGists;
-      this.profile.followers = data.followers;
-      this.profile.following = data.following;
-      this.profile.createdAt = data.createdAt;
-      this.profile.updatedAt = data.updatedAt;
+      this.profile = {
+        name: data.name,
+        company: data.company,
+        blog: data.blog,
+        location: data.location,
+        email: data.email,
+        hireable: data.hireable,
+        bio: data.bio,
+        publicRepos: data.publicRepos,
+        publicGists: data.publicGists,
+        followers: data.followers,
+        following: data.following,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
     }
   }
 }

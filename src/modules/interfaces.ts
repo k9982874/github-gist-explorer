@@ -21,9 +21,9 @@ export interface IFile {
 }
 
 export interface IUser {
+  id: string;
   login: string;
-  id: number;
-  nodeID: string;
+  nodeID?: string;
   avatarURL?: string;
   gravatarID?: string;
   url?: string;
@@ -43,19 +43,19 @@ export interface IUser {
 }
 
 export interface IUserProfile {
-  name?: string;
-  company?: string;
-  blog?: string;
-  location?: string;
-  email?: string;
-  hireable?: string;
-  bio?: string;
-  publicRepos?: number;
-  publicGists?: number;
-  followers?: number;
-  following?: number;
-  createdAt?: string;
-  updatedAt?: string;
+  name: string;
+  company: string;
+  blog: string;
+  location: string;
+  email: string;
+  hireable: string;
+  bio: string;
+  publicRepos: number;
+  publicGists: number;
+  followers: number;
+  following: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface IHistory {
@@ -71,22 +71,22 @@ export interface IHistory {
 export interface IGist {
   id: string;
   label: string;
-  nodeID: string;
-  url: string;
-  forksURL: string;
-  commitsURL: string;
-  gitPullURL: string;
-  gitPushURL: string;
-  htmlURL: string;
+  nodeID?: string;
+  url?: string;
+  forksURL?: string;
+  commitsURL?: string;
+  gitPullURL?: string;
+  gitPushURL?: string;
+  htmlURL?: string;
   files: IFile[];
-  public: boolean;
-  createdAt: string;
-  updatedAt: string;
-  description: string;
-  comments: string;
+  public?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  description?: string;
+  comments?: string;
   user?: IUser;
-  commentsURL: string;
+  commentsURL?: string;
   owner?: IUser;
   history: IHistory[];
-  truncated: boolean;
+  truncated?: boolean;
 }

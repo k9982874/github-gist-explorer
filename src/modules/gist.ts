@@ -6,25 +6,25 @@ import HistoryModule from "./history";
 
 export default class GistModule implements IGist {
   id = "";
-  label = "";
-  nodeID = "";
-  url = "";
-  forksURL = "";
-  commitsURL = "";
-  gitPullURL = "";
-  gitPushURL = "";
-  htmlURL = "";
+  label = "New Gist";
+  nodeID?: string;
+  url?: string;
+  forksURL?: string;
+  commitsURL?: string;
+  gitPullURL?: string;
+  gitPushURL?: string;
+  htmlURL?: string;
   files: IFile[] = [];
-  public = true;
-  createdAt = "";
-  updatedAt = "";
-  description = "";
-  comments = "";
+  public?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  description?: string;
+  comments?: string;
   user?: IUser;
-  commentsURL = "";
+  commentsURL?: string;
   owner?: IUser;
   history: IHistory[] = [];
-  truncated = false;
+  truncated?: boolean;
 
   constructor(data?: any) {
     if (data) {
@@ -67,12 +67,6 @@ export default class GistModule implements IGist {
       } else {
         this.label = "(Empty Gist)";
       }
-    } else {
-      this.label = "New Gist";
-      this.files = new Array();
-      this.user = new UserModule();
-      this.owner = new UserModule();
-      this.history = new Array();
     }
   }
 }

@@ -1,4 +1,4 @@
-import { IHistory, IUser, HistoryStatus } from "./interfaces";
+import { IGist, IHistory, IUser, HistoryStatus } from "./interfaces";
 
 import UserModule from "./user";
 import ChangeStatusModule from "./changeStatus";
@@ -13,7 +13,8 @@ export default class HistoryModule implements IHistory {
     deletions: 0
   };
   url = "";
-  status =  HistoryStatus.Unknown;
+  status?: HistoryStatus;
+  gist?: IGist;
 
   constructor(data?: any) {
 

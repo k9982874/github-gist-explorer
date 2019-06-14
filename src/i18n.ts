@@ -4,7 +4,7 @@ import i18next from "i18next";
 
 const options = {
   lng: "en-US",
-  debug: false,
+  debug: process.env.NODE_ENV === "development",
   resources: {
     "en-US": {
       translation: require("../resources/i18n/en-US.json")

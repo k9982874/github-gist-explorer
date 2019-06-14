@@ -12,12 +12,16 @@ import { ITreeProvider, TreeSortBy, GistTreeItem, FileTreeItem, compareFn } from
 
 type Node = GistTreeItem | FileTreeItem;
 
-export class GistTreeProvider implements ITreeProvider, TreeDataProvider<Node> {
+export class GistTreeProvider implements ITreeProvider<IGist>, TreeDataProvider<Node> {
   private readonly onDidChangeTreeDataEmitter: EventEmitter<Node | undefined> = new EventEmitter<Node | undefined>();
   readonly onDidChangeTreeData: Event<Node | undefined> = this.onDidChangeTreeDataEmitter.event;
 
-  private items: IGist[] = new Array();
   private starredItems: IGist[] = new Array();
+  private unstarredItems: IGist[] = new Array();
+
+  get items(): IGist[] {
+    return [...this.starredItems, ...this.unstarredItems];
+  }
 
   getTreeItem(element: Node): TreeItem {
     return element;
@@ -30,25 +34,23 @@ export class GistTreeProvider implements ITreeProvider, TreeDataProvider<Node> {
       }
       return [];
     } else {
-      const items = this.items.map(value => new GistTreeItem(value));
       const starredItems = this.starredItems.map(value => new GistTreeItem(value, true));
+      const unstarredItems = this.unstarredItems.map(value => new GistTreeItem(value));
 
-      return [...starredItems, ...items];
+      return [...starredItems, ...unstarredItems];
     }
   }
 
   @validate
   @pending("explorer.listing_gist")
   refresh(): Promise<void> {
-    this.items = [];
     this.starredItems = [];
+    this.unstarredItems = [];
 
     return Promise.all([api.list(Configuration.github.username), api.listStarred()])
-      .then(results => {
-        const [all, starred] = results;
-
-        this.items = all.filter(a => starred.findIndex(b => a.id === b.id) === -1);
+      .then(([all, starred]) => {
         this.starredItems = starred;
+        this.unstarredItems = all.filter(a => starred.findIndex(b => a.id === b.id) === -1);
 
         this.sort();
       })
@@ -74,8 +76,8 @@ export class GistTreeProvider implements ITreeProvider, TreeDataProvider<Node> {
 
     const fn = compareFn(sortBy, ascending);
 
-    this.items = this.items.sort(fn);
     this.starredItems = this.starredItems.sort(fn);
+    this.unstarredItems = this.unstarredItems.sort(fn);
 
     this.onDidChangeTreeDataEmitter.fire();
   }

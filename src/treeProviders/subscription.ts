@@ -7,19 +7,54 @@ import * as VSCode from "../vscode";
 
 import Configuration from "../configuration";
 
-import { pending } from "../waitify";
+import { pending, loading } from "../waitify";
 
 import { IGist, IUser } from "../modules";
 import { ITreeProvider, TreeSortBy, UserTreeItem, GistTreeItem, FileTreeItem, compareFn } from "./common";
 
 type Node = UserTreeItem | GistTreeItem | FileTreeItem;
 
-export class SubscriptionTreeProvider implements ITreeProvider, TreeDataProvider<Node> {
+export class Subscription {
+  private data: IGist[] = [];
+
+  constructor(readonly user: IUser) {
+  }
+
+  get label(): string {
+    return this.user.login;
+  }
+
+  get items(): IGist[] | Promise<IGist[]> {
+    if (this.data.length > 0) {
+      return this.data;
+    }
+
+    return api.list(this.label).then(items => this.data = items);
+  }
+
+  get length(): number {
+    return this.data.length;
+  }
+
+  sort(compareFn?: (a: IGist, b: IGist) => number): Subscription {
+    this.data = this.data.sort(compareFn);
+    return this;
+  }
+
+  map<U>(callbackfn: (value: IGist, index: number, array: IGist[]) => U, thisArg?: any): U[] {
+    return this.data.map<U>(callbackfn);
+  }
+}
+
+export class SubscriptionTreeProvider implements ITreeProvider<Subscription>, TreeDataProvider<Node> {
   private readonly onDidChangeTreeDataEmitter: EventEmitter<Node | undefined> = new EventEmitter<Node | undefined>();
   readonly onDidChangeTreeData: Event<Node | undefined> = this.onDidChangeTreeDataEmitter.event;
 
-  private readonly users: Map<string, IUser> = new Map();
-  private readonly items: Map<string, IGist[]> = new Map();
+  readonly subscriptions: Map<string, Subscription> = new Map();
+
+  get items(): Subscription[] {
+    return Array.from(this.subscriptions.values());
+  }
 
   getTreeItem(element: Node): TreeItem {
     return element;
@@ -29,22 +64,13 @@ export class SubscriptionTreeProvider implements ITreeProvider, TreeDataProvider
     if (element) {
       switch (element.contextValue) {
         case "User":
-          if (this.items.has(element.label)) {
-            const items = this.items.get(element.label);
-            if (items.length > 0) {
-              return items.map(v => new GistTreeItem(v));
-            }
-
-            return api.listWaitable(element.label)
-              .then(results => {
-                this.items.set(element.label, results);
-
-                return results.map(v => {
-                  return new GistTreeItem(v);
-                });
-              });
+          const items = this.subscriptions.get(element.id).items;
+          if (items instanceof Promise) {
+            return loading("explorer.listing_gist", () => items)
+              .then(result => result.map(v => new GistTreeItem(v)));
+          } else {
+            return items;
           }
-          return [];
         case "Gist":
           return (element as GistTreeItem).metadata.files.map(f => {
             const command = {
@@ -55,14 +81,10 @@ export class SubscriptionTreeProvider implements ITreeProvider, TreeDataProvider
           });
       }
     } else {
-      const items = [];
-      for (const v of this.users.values()) {
-        items.push(new UserTreeItem(v));
-      }
+      const items = this.items.map(v => new UserTreeItem(v.user));
 
       const ascending = Configuration.explorer.subscriptionAscending;
-
-      return items.sort((a, b) => {
+      const compareFn = function (a, b) {
         const [x, y] = ascending ? [a, b] : [b, a];
         if (x.label < y.label) {
           return -1;
@@ -70,24 +92,20 @@ export class SubscriptionTreeProvider implements ITreeProvider, TreeDataProvider
           return 1;
         }
         return 0;
-      });
+      };
+      return items.sort(compareFn);
     }
   }
 
   @pending("explorer.retrieve_user")
   refresh(): Promise<void> {
-    this.users.clear();
-    this.items.clear();
+    this.subscriptions.clear();
 
     const tasks = Configuration.explorer.subscriptions.map(v => api.retrieveUser(v));
     return Promise.all(tasks)
-      .then(users => {
-        users.forEach(v => {
-          this.users.set(v.login, v);
-        });
-
-        Configuration.explorer.subscriptions.forEach(v => {
-          this.items.set(v, []);
+      .then(results => {
+        results.forEach(v => {
+          this.subscriptions.set(v.id, new Subscription(v));
         });
 
         this.sort();
@@ -110,9 +128,8 @@ export class SubscriptionTreeProvider implements ITreeProvider, TreeDataProvider
     VSCode.executeCommand("setContext", "SubscriptionAscending", ascending);
 
     const fn = compareFn(sortBy, ascending);
-    for (const key of this.items.keys()) {
-      const items = this.items.get(key).sort(fn);
-      this.items.set(key, items);
+    for (const key of this.subscriptions.keys()) {
+      this.subscriptions.get(key).sort(fn);
     }
 
     this.onDidChangeTreeDataEmitter.fire();
@@ -164,9 +181,9 @@ export class SubscriptionTreeProvider implements ITreeProvider, TreeDataProvider
 
           login = matchs.pop();
 
-          const subs = Configuration.explorer.subscriptions;
-          if (!subs.includes(login)) {
-            Configuration.explorer.subscriptions = [...subs, login];
+          const sub = Configuration.explorer.subscriptions;
+          if (!sub.includes(login)) {
+            Configuration.explorer.subscriptions = [...sub, login];
           }
         }
       })
@@ -179,9 +196,9 @@ export class SubscriptionTreeProvider implements ITreeProvider, TreeDataProvider
     VSCode.message("explorer.unsubscribe_gist_confirmation", node.label).showWarningMessage({ modal: true }, i18n("explorer.ok"))
       .then(reply => {
         if (reply) {
-          const subs = Configuration.explorer.subscriptions;
-          if (subs.includes(node.label)) {
-            Configuration.explorer.subscriptions = subs.filter(v => v !== node.label);
+          const sub = Configuration.explorer.subscriptions;
+          if (sub.includes(node.label)) {
+            Configuration.explorer.subscriptions = sub.filter(v => v !== node.label);
           }
         }
       })

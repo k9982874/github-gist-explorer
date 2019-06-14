@@ -1,11 +1,10 @@
+import i18n from "./i18n";
+
 import { commands, window, workspace } from "vscode";
 
 import promisify from "./promisify";
 
-import i18n from "./i18n";
-
 import * as constans from "./constans";
-
 
 export class MessageChain {
   private text: string;

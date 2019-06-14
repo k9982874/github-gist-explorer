@@ -1,6 +1,6 @@
 # GitHub Gist Explorer
 
-*Management your GitHub Gists with Visual Studio Code*
+*Management your GitHub gists with Visual Studio Code*
 ![Screenshot](https://raw.githubusercontent.com/k9982874/github-gist-explorer/master/images/guide-1.png)
 
 *Please star the repository whether you like this extension!*
