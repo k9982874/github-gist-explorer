@@ -2,11 +2,11 @@ import i18n from "./i18n";
 
 import * as vscode from "vscode";
 
-import promisify from "./promisify";
+import promisify, { PromiseFunction } from "./promisify";
 
 import * as constans from "./constans";
 
-export default function waitify<T>(titleKey: string, func: (...argArray: any[]) => Promise<T>, thisArg?: any): (...argArray: any[]) => Promise<T> {
+export default function waitify<T>(titleKey: string, func: PromiseFunction<T>, thisArg?: any): (...argArray: any[]) => Promise<T> {
   const caller = function (...argArray: any[]): Thenable<T> {
     const text = i18n(titleKey);
     return vscode.window.withProgress({
@@ -20,7 +20,7 @@ export default function waitify<T>(titleKey: string, func: (...argArray: any[]) 
   return promisify<T>(caller, thisArg);
 }
 
-export function loading<T>(titleKey: string, func: (...argArray: any[]) => Promise<T>, thisArg?: any, ...argArray: any[]): Promise<T> {
+export function loading<T>(titleKey: string, func: PromiseFunction<T>, thisArg?: any, ...argArray: any[]): Promise<T> {
   return waitify<T>(titleKey, func, thisArg).apply(thisArg, argArray);
 }
 

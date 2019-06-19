@@ -36,11 +36,13 @@
         <b-card-body class="d-flex justify-content-center py-2">
           <!--b-alert v-if="getError(item)" show variant="danger">{{getError(item).message}}</b-alert-->
           <b-spinner v-if="item.status === 'LOADING'" type="grow"></b-spinner>
-          <div v-else-if="item.status === 'DONE'" class="file-grid">
-            <div v-for="file in item.gist.files" :key="file.filename" class="px-4 my-2">
-              <svg viewBox="0 0 1024 1024" width="16" height="16" class="file-icon">
-                <path d="M745.2 773.1H428.1c-14.9 0-28 13.1-28 28v56c0 14.9 13.1 28 28 28h317.1c14.9 0 28-13.1 28-28v-56c-0.1-14.9-13.1-28-28-28z m186.5-186.5H428.1c-14.9 0-28 13.1-28 28v56c0 14.9 13.1 28 28 28h503.6c14.9 0 28-13.1 28-28v-56c0-14.9-13.1-28-28-28z m-634.2 0H92.3c-14.9 0-28 13.1-28 28v242.5c0 14.9 13.1 28 28 28h205.2c14.9 0 28-13.1 28-28V614.6c0-14.9-13.1-28-28-28z m130.6-149.2h317.1c14.9 0 28-13.1 28-28v-56c0-14.9-13.1-28-28-28H428.1c-14.9 0-28 13.1-28 28v56c0 14.9 13 28 28 28zM931.7 139H428.1c-14.9 0-28 13.1-28 28v56c0 14.9 13.1 28 28 28h503.6c14.9 0 28-13.1 28-28v-56c0-15-13.1-28-28-28z m-634.2 0H92.3c-14.9 0-28 13.1-28 28v242.5c0 14.9 13.1 28 28 28h205.2c14.9 0 28-13.1 28-28V166.9c0-14.9-13.1-27.9-28-27.9z" p-id="1136"></path>
-              </svg>
+          <div v-else-if="item.status === 'DONE'" class="d-flex flex-wrap">
+            <div v-for="file in item.gist.files" :key="file.filename" class="px-4 my-2 d-flex">
+              <div class="mr-1">
+                <svg viewBox="0 0 1024 1024" width="16" height="16" class="file-icon">
+                  <path d="M745.2 773.1H428.1c-14.9 0-28 13.1-28 28v56c0 14.9 13.1 28 28 28h317.1c14.9 0 28-13.1 28-28v-56c-0.1-14.9-13.1-28-28-28z m186.5-186.5H428.1c-14.9 0-28 13.1-28 28v56c0 14.9 13.1 28 28 28h503.6c14.9 0 28-13.1 28-28v-56c0-14.9-13.1-28-28-28z m-634.2 0H92.3c-14.9 0-28 13.1-28 28v242.5c0 14.9 13.1 28 28 28h205.2c14.9 0 28-13.1 28-28V614.6c0-14.9-13.1-28-28-28z m130.6-149.2h317.1c14.9 0 28-13.1 28-28v-56c0-14.9-13.1-28-28-28H428.1c-14.9 0-28 13.1-28 28v56c0 14.9 13 28 28 28zM931.7 139H428.1c-14.9 0-28 13.1-28 28v56c0 14.9 13.1 28 28 28h503.6c14.9 0 28-13.1 28-28v-56c0-15-13.1-28-28-28z m-634.2 0H92.3c-14.9 0-28 13.1-28 28v242.5c0 14.9 13.1 28 28 28h205.2c14.9 0 28-13.1 28-28V166.9c0-14.9-13.1-27.9-28-27.9z" p-id="1136"></path>
+                </svg>
+              </div>
               <b-link class="mx-1" href="#" @click="onFileSelected(item.version, file)">{{file.filename}}</b-link>
             </div>
           </div>

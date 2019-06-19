@@ -6,10 +6,16 @@
     "rootDir": "src",
 		"outDir": "dist",
 		"lib": [
-			"es6"
+			"es6",
+			"es2018.promise"
 		],
     "sourceMap": true,
 		"experimentalDecorators": true
 	},
-	"exclude": ["node_modules", ".vscode", ".vscode-test", "web"]
+	"exclude": [
+		"node_modules",
+		".vscode",
+		".vscode-test",
+		"web"
+	]
 }

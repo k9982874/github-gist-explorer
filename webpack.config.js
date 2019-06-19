@@ -42,6 +42,9 @@ const config = {
       options: {
         configFile: path.join(__dirname, 'tsconfig.json')
       }
+    }, {
+      test: /\.node$/,
+      use: 'node-loader'
     }]
   },
   plugins: [
@@ -57,6 +60,7 @@ module.exports = function (env, argv) {
   };
 
   if (argv.mode === 'production') {
+    config.mode = 'production';
     config.devtool = false;
 
     config.optimization = {

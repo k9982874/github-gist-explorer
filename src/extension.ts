@@ -2,11 +2,9 @@
 
 import i18n from "./i18n";
 
-import { extensions, ConfigurationChangeEvent, ExtensionContext, TextDocument, Uri } from "vscode";
+import { ConfigurationChangeEvent, ExtensionContext, FileChangeEvent, FileChangeType, Uri } from "vscode";
 
-import { Subscriber, Extension, Command, Event, TextDocumentContentProvider, TreeDataProvider, WebviewPanel } from "vscode-extension-decorator";
-
-import * as path from "path";
+import { Command, Event, Extension, FileSystemProvider, Subscriber, TextDocumentContentProvider, TreeDataProvider, WebviewPanel } from "vscode-extension-decorator";
 
 import * as clipboardy from "clipboardy";
 
@@ -16,11 +14,13 @@ import * as constans from "./constans";
 import * as api from "./api";
 import * as VSCode from "./vscode";
 
-import { IGist, IFile } from "./modules";
-
 import { loading } from "./waitify";
 
+import { IGist, IFile } from "./modules";
+
 import Configuration from "./configuration";
+
+import GistFileSystemProvider from "./filesystemProvider";
 
 import ShortCut from "./shortcut";
 
@@ -33,14 +33,17 @@ import { GistSearch, SubscriptionSearch } from "./search";
 
 @Extension
 export class GitHubGistExplorer extends Subscriber {
+  @FileSystemProvider("gistfs", { isCaseSensitive: process.platform === "linux" })
+  public readonly gistFileSystem: GistFileSystemProvider = new GistFileSystemProvider();
+
   @WebviewPanel("GistHistory")
   public readonly historyView: HistoryViewProvider = new HistoryViewProvider();
 
-  @TextDocumentContentProvider("FileContent")
-  public readonly contentProvider: ContentProvider = new ContentProvider();
+  @TextDocumentContentProvider("GistFile")
+  public readonly fileContentProvider: ContentProvider = new ContentProvider();
 
-  @TextDocumentContentProvider("ExportReport")
-  public readonly exportReportProvider: ContentProvider = new ContentProvider();
+  @TextDocumentContentProvider("GistReport")
+  public readonly reportContentProvider: ContentProvider = new ContentProvider();
 
   @TreeDataProvider("GistTree")
   @Command("GitHubGistExplorer.GistTree.sortByLabel", "sortByLabel")
@@ -72,17 +75,10 @@ export class GitHubGistExplorer extends Subscriber {
   @Command("GitHubGistExplorer.shortcut.subscriptionSearch", "show")
   public readonly subscriptionSearch: SubscriptionSearch = new SubscriptionSearch(this.subscriptionTree);
 
-  public readonly documentsSaving: string[] = new Array();
-
   constructor(context: ExtensionContext) {
     super(context);
-  }
 
-  getHomeDirectory(): string {
-    const extensionPath: string = extensions.getExtension(constans.EXTENSION_ID).extensionPath;
-    const username: string = Configuration.github.username;
-
-    return `${extensionPath}/${username}`;
+    this.register(this.gistFileSystem.onDidChangeFile, this.gistFileSystem, this.didChangeFileHandle);
   }
 
   @Command("GitHubGistExplorer.GistTree.refresh")
@@ -91,13 +87,13 @@ export class GitHubGistExplorer extends Subscriber {
     if (commandId === "GitHubGistExplorer.SubscriptionTree.refresh") {
       this.subscriptionTree.refresh();
     } else {
-      const home: string = this.getHomeDirectory();
+      const home: string = GistFileSystemProvider.homeDirectory();
       filesystem.rmrf(home).finally(() => {
         this.gistTree.refresh();
       });
     }
   }
-  
+
   @Command("GitHubGistExplorer.viewUser")
   viewUser(commandId: string, node: UserTreeItem) {
     VSCode.executeCommand("vscode.open", Uri.parse(node.metadata.htmlURL));
@@ -175,8 +171,8 @@ export class GitHubGistExplorer extends Subscriber {
         if (reply) {
           return api.destroyWaitable(gist.id)
             .then(() => {
-              const home: string = this.getHomeDirectory();
-              return filesystem.rmrf(`${home}/${gist.id}`);
+              const uri = GistFileSystemProvider.parseGist(gist);
+              return this.gistFileSystem.promise.delete(uri, { recursive: true });
             }).then(() => {
               this.gistTree.refresh();
             });
@@ -192,9 +188,6 @@ export class GitHubGistExplorer extends Subscriber {
     const gist: IGist = node.metadata;
     api.starWaitable(gist.id)
       .then(() => {
-        const home: string = this.getHomeDirectory();
-        return filesystem.rmrf(`${home}/${gist.id}`);
-      }).then(() => {
         this.gistTree.refresh();
       })
       .catch(error => {
@@ -207,9 +200,6 @@ export class GitHubGistExplorer extends Subscriber {
     const gist: IGist = node.metadata;
     api.unstarWaitable(gist.id)
       .then(() => {
-        const home: string = this.getHomeDirectory();
-        return filesystem.rmrf(`${home}/${gist.id}`);
-      }).then(() => {
         this.gistTree.refresh();
       })
       .catch(error => {
@@ -267,8 +257,7 @@ export class GitHubGistExplorer extends Subscriber {
       })
       .then(results => {
         if (results) {
-          const data = Buffer.from(results.join("\n")).toString("base64");
-          const uri = Uri.parse(`ExportReport:${node.label}.log?${data}`);
+          const uri = ContentProvider.parseReport(gist.label, results);
           VSCode.showTextDocument(uri);
         }
       })
@@ -343,13 +332,9 @@ export class GitHubGistExplorer extends Subscriber {
         }
 
         const tasks = uris.map(v => {
+          const filename = filesystem.basename(v.path);
           return filesystem.readfile(v.path)
-            .then(content => {
-              return Promise.resolve({
-                filename: path.basename(v.path),
-                content
-              });
-            });
+            .then(content => Promise.resolve({ filename, content }));
         });
         return Promise.resolve(tasks);
       }).then(tasks => {
@@ -375,43 +360,24 @@ export class GitHubGistExplorer extends Subscriber {
   @Command("GitHubGistExplorer.editFile")
   editFile(commandId: string, node: FileTreeItem) {
     const file: IFile = node.metadata;
+    const fileUri = GistFileSystemProvider.parseFile(file);
 
-    const home: string = this.getHomeDirectory();
-    const path = `${home}/${file.gistID}`;
-    const filename = `${path}/${file.filename}`;
+    const gistUri = GistFileSystemProvider.parseGist({ id: file.gistID });
 
-    filesystem.exists(path)
+    this.gistFileSystem.promise.exists(gistUri)
+      .then(exists => exists ? Promise.resolve() : this.gistFileSystem.promise.createDirectory(gistUri))
+      .then(() => this.gistFileSystem.promise.exists(fileUri))
       .then(exists => {
         if (exists) {
           return Promise.resolve();
-        } else {
-          return filesystem.mkdir(path);
         }
+
+        return api.downloadFileWaitable(fileUri.query)
+          .then(content => this.gistFileSystem.promise.writeFile(fileUri, content));
       })
       .then(() => {
-        return filesystem.exists(filename);
-      })
-      .then(exists => {
-        if (exists) {
-          const uri = Uri.file(filename);
-          return VSCode.openTextDocument(uri);
-        } else {
-          return api.downloadFileWaitable(file.rawURL)
-            .then(content => {
-              if (typeof content === "object") {
-                return filesystem.writefile(filename, JSON.stringify(content));
-              } else if (typeof content === "string") {
-                return filesystem.writefile(filename, content);
-              } else {
-                const msg = i18n("error.unknown_file_format");
-                return Promise.reject(new Error(msg));
-              }
-            })
-            .then(() => {
-              const uri = Uri.file(filename);
-              return VSCode.openTextDocument(uri);
-            });
-        }
+        const uri = GistFileSystemProvider.parseFile(file);
+        return VSCode.openTextDocument(uri);
       })
       .then(doc => {
         VSCode.showTextDocument(doc, { preview: true });
@@ -425,7 +391,7 @@ export class GitHubGistExplorer extends Subscriber {
   viewFile(command: string, node: FileTreeItem) {
     const file: IFile = node.metadata;
 
-    const uri = Uri.parse(`FileContent:${file.filename}?${file.rawURL}`);
+    const uri = ContentProvider.parseFile(file.filename, file.rawURL);
     VSCode.showTextDocument(uri, { preview: true });
   }
 
@@ -438,8 +404,8 @@ export class GitHubGistExplorer extends Subscriber {
         if (reply) {
           return api.deleteFileWaitable(file.gistID, file.filename)
             .then(() => {
-              const home: string = this.getHomeDirectory();
-              return filesystem.rmrf(`${home}/${file.gistID}/${file.filename}`);
+              const uri = GistFileSystemProvider.parseFile(file);
+              return this.gistFileSystem.promise.delete(uri, { recursive: false });
             })
             .then(() => {
               this.gistTree.refresh();
@@ -472,8 +438,8 @@ export class GitHubGistExplorer extends Subscriber {
 
         return api.renameFileWaitable(file.gistID, file.filename, value)
           .then(() => {
-            const home: string = this.getHomeDirectory();
-            return filesystem.rmrf(`${home}/${file.gistID}/${file.filename}`);
+            const uri = GistFileSystemProvider.parseFile(file);
+            return this.gistFileSystem.promise.delete(uri, { recursive: false });
           })
           .then(() => {
             this.gistTree.refresh();
@@ -488,24 +454,11 @@ export class GitHubGistExplorer extends Subscriber {
   reloadFile(commandId: string, node: FileTreeItem) {
     const file: IFile = node.metadata;
 
-    const home: string = this.getHomeDirectory();
-    const path = `${home}/${file.gistID}`;
-    const filename = `${path}/${file.filename}`;
+    const uri = GistFileSystemProvider.parseFile(file);
 
-    api.downloadFileWaitable(file.rawURL)
-      .then(content => {
-        if (typeof content === "object") {
-          return filesystem.writefile(filename, JSON.stringify(content));
-        } else if (typeof content === "string") {
-          return filesystem.writefile(filename, content);
-        } else {
-          const msg = i18n("error.unknown_file_format");
-          return Promise.reject(new Error(msg));
-        }
-      })
+    this.gistFileSystem.promise.delete(uri, { recursive: false })
       .then(() => {
-        const uri = Uri.file(filename);
-        return VSCode.openTextDocument(uri);
+        this.gistFileSystem.readFile(uri);
       })
       .catch(error => {
         VSCode.showErrorMessage(error.message);
@@ -519,7 +472,7 @@ export class GitHubGistExplorer extends Subscriber {
       if (changes.includes("GithubGistExplorer.explorer.subscriptions")) {
         this.subscriptionTree.refresh();
       } else {
-        const home: string = this.getHomeDirectory();
+        const home: string = GistFileSystemProvider.homeDirectory();
         filesystem.rmrf(home).finally(() => {
           this.gistTree.refresh();
         });
@@ -527,53 +480,38 @@ export class GitHubGistExplorer extends Subscriber {
     }
   }
 
-  @Event("onDidSaveTextDocument")
-  didSaveTextDocumentHandle(eventId: string, doc: TextDocument) {
-    const home: string = this.getHomeDirectory();
-    if (!doc.fileName.startsWith(home)) {
-      return;
-    }
-
-    const filename: string = doc.fileName.slice(home.length + 1);
-
-    const [ gistID, name ] = filename.split("/");
-    if (!gistID || !name) {
-      return;
-    }
-
-    const fileIndex = this.documentsSaving.indexOf(filename);
-    if (fileIndex !== -1) {
-      return;
-    }
-
-    this.documentsSaving.push(filename);
-
-    api.updateFileWaitable(gistID, name, doc.getText())
-      .catch(error => {
-        VSCode.showErrorMessage(error.message);
-        return Promise.resolve();
-      })
-      .finally(() => {
-        this.documentsSaving.splice(fileIndex, 1);
-      });
+  didChangeFileHandle(events: FileChangeEvent[]) {
+    events.forEach(e => {
+      if (e.type === FileChangeType.Changed) {
+        if (e.uri.scheme === "gistfs") {
+          const [ gistID, filename ] = e.uri.path.substring(1).split("/");
+          if (gistID && filename) {
+            const path = GistFileSystemProvider.fullPath(e.uri);
+            filesystem.readfile(path)
+              .then(content => {
+                api.updateFileWaitable(gistID, filename, content);
+              });
+          }
+        }
+      }
+    });
   }
 }
 
 export function activate(context: ExtensionContext) {
   const explorer = new GitHubGistExplorer(context);
 
-  const gistSortBy: string = Configuration.explorer.gistSortBy;
   const gistAscending: boolean = Configuration.explorer.gistAscending;
-
-  const subscriptionSortBy: string = Configuration.explorer.subscriptionSortBy;
   const subscriptionAscending: boolean = Configuration.explorer.subscriptionAscending;
-
   Promise.all([
     VSCode.executeCommand("setContext", "GistAscending", gistAscending),
     VSCode.executeCommand("setContext", "SubscriptionAscending", subscriptionAscending)
   ])
   .then(() => {
+    const gistSortBy: string = Configuration.explorer.gistSortBy;
     explorer.gistTree.sort(gistSortBy, gistAscending);
+
+    const subscriptionSortBy: string = Configuration.explorer.subscriptionSortBy;
     explorer.subscriptionTree.sort(subscriptionSortBy, subscriptionAscending);
 
     return Promise.all([

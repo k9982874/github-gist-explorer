@@ -1,18 +1,48 @@
 import i18n from "./i18n";
 
-import { CancellationToken } from "vscode";
+import { CancellationToken, FileSystemError } from "vscode";
 
 import * as fs from "fs";
 import * as path from "path";
 import * as mkdirp from "mkdirp";
 import * as rimraf from "rimraf";
 
+export { basename, dirname, extname, join, parse, resolve } from "path";
+export { existsSync, readFileSync, watch } from "fs";
+
+export declare type Stats = fs.Stats;
+
+export interface IStatAndLink {
+  stat: fs.Stats;
+  isSymbolicLink: boolean;
+}
+
 function handleResult<T>(resolve: (result: T) => void, reject: (error: Error) => void, error: Error | null | undefined, result: T): void {
   if (error) {
-    reject(error);
+    reject(massageError(error));
   } else {
     resolve(result);
   }
+}
+
+function massageError(error: Error & { code?: string }): Error {
+  if (error.code === "ENOENT") {
+    return FileSystemError.FileNotFound();
+  }
+
+  if (error.code === "EISDIR") {
+    return FileSystemError.FileIsADirectory();
+  }
+
+  if (error.code === "EEXIST") {
+    return FileSystemError.FileExists();
+  }
+
+  if (error.code === "EPERM" || error.code === "EACCESS") {
+    return FileSystemError.NoPermissions();
+  }
+
+  return error;
 }
 
 export function checkCancellation(token: CancellationToken): void {
@@ -69,7 +99,7 @@ export function readfile(path: string): Promise<Buffer> {
   });
 }
 
-export function writefile(path: string, content: String | Buffer): Promise<void> {
+export function writefile(path: string | number, content: String | Buffer): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     fs.writeFile(path, content, error => handleResult(resolve, reject, error, void 0));
   });
@@ -102,5 +132,35 @@ export function rename(oldPath: string, newPath: string): Promise<void> {
 export function unlink(path: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     fs.unlink(path, error => handleResult(resolve, reject, error, void 0));
+  });
+}
+
+export function statLink(path: string): Promise<IStatAndLink> {
+  return new Promise((resolve, reject) => {
+    fs.lstat(path, (error, lstat) => {
+      if (error || lstat.isSymbolicLink()) {
+        fs.stat(path, (error, stat) => {
+          if (error) {
+            return handleResult(resolve, reject, error, void 0);
+          }
+
+          handleResult(resolve, reject, error, {
+            stat,
+            isSymbolicLink: lstat && lstat.isSymbolicLink()
+          });
+        });
+      } else {
+        handleResult(resolve, reject, error, {
+          stat: lstat,
+          isSymbolicLink: false
+        });
+      }
+    });
+  });
+}
+
+export function copyFile(src: string, dest: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    fs.copyFile(src, dest, error => handleResult(resolve, reject, error, void 0));
   });
 }

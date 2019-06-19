@@ -2,7 +2,7 @@ import i18n from "./i18n";
 
 import { commands, extensions, window, Uri, ViewColumn, WebviewPanel } from "vscode";
 
-import { IWebviewProvider, IWebviewWrapper, WebviewProvider } from "vscode-extension-decorator";
+import { IWebviewProvider, WebviewProvider } from "vscode-extension-decorator";
 
 import * as fs from "fs";
 import * as path from "path";
@@ -13,19 +13,20 @@ import * as VSCode from "./vscode";
 
 import { IGist } from "./modules";
 
+import ContentProvider from "./contentProvider";
+
 @WebviewProvider
 export default class HistoryViewProvider implements IWebviewProvider {
-  wrapper?: IWebviewWrapper;
-  wrapperClass?: Object;
-
   extensionPath: string;
 
-  static show(gist: IGist) {
-    (HistoryViewProvider as any).reveal(ViewColumn.One, gist.id);
-  }
+  postMessage?: (message: any) => boolean | Thenable<boolean>;
 
   constructor(state?: any) {
     this.extensionPath = extensions.getExtension(constans.EXTENSION_ID).extensionPath;
+  }
+
+  static show(gist: IGist) {
+    (HistoryViewProvider as any).reveal(ViewColumn.One, gist.id);
   }
 
   createWebviewPanel(): WebviewPanel {
@@ -75,7 +76,7 @@ export default class HistoryViewProvider implements IWebviewProvider {
   retrieveGist(gistID: string, version?: string) {
     api.retrieveWaitable(gistID, version)
       .then(data => {
-        this.wrapper.postMessage({
+        this.postMessage({
           command: "RETRIEVE_GIST",
           data: {
             gistID,
@@ -89,7 +90,7 @@ export default class HistoryViewProvider implements IWebviewProvider {
       });
   }
 
-  fileSelected(data: any) {
+  fileSelected(data: { filename: string, version: string, latest: string, history: string}) {
     const view = i18n("explorer.view_file");
     const compare = i18n("explorer.compare_file");
 
@@ -99,11 +100,11 @@ export default class HistoryViewProvider implements IWebviewProvider {
 
         if (action) {
           if (action === view) {
-            const uri = Uri.parse(`FileContent:${version} - ${data.filename}?${data.history}`);
+            const uri = ContentProvider.parseFile(data.filename, data.history, version);
             VSCode.showTextDocument(uri, { preview: true });
           } else if (action === compare) {
-            const latest = Uri.parse(`FileContent:${data.filename}?${data.latest}`);
-            const history = Uri.parse(`FileContent:${data.filename}?${data.history}`);
+            const latest = ContentProvider.parseFile(data.filename, data.latest);
+            const history = ContentProvider.parseFile(data.filename, data.history);
 
             const title = `${data.filename}: Latest \u2194 ${version}`;
 

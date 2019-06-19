@@ -290,7 +290,7 @@ export function retrieveComment(gistID: string): Promise<any[]> {
     });
 }
 
-export const downloadFileWaitable = waitify("explorer.downloading_file", downloadFile);
+export const downloadFileWaitable = waitify<string>("explorer.downloading_file", downloadFile);
 export const retrieveUserWaitable = waitify("explorer.retrieve_user", retrieveUser);
 export const listWaitable = waitify("explorer.listing_gist", list);
 export const listStarredWaitable = waitify("explorer.listing_starred_gist", listStarred);
