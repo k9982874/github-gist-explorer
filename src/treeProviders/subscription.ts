@@ -132,7 +132,7 @@ export class SubscriptionTreeProvider implements ITreeProvider<Subscription>, Tr
       this.subscriptions.get(key).sort(fn);
     }
 
-    this.onDidChangeTreeDataEmitter.fire();
+    this.onDidChangeTreeDataEmitter.fire(null);
   }
 
   sortByLabel() {
@@ -193,11 +193,12 @@ export class SubscriptionTreeProvider implements ITreeProvider<Subscription>, Tr
   }
 
   unsubscribe(commandId: string, node: UserTreeItem) {
-    VSCode.message('explorer.unsubscribe_gist_confirmation', node.label).warn({ modal: true }, i18n('explorer.ok'))
+    const label = (typeof node.label === 'string') ? node.label : node.label.label
+    VSCode.message('explorer.unsubscribe_gist_confirmation', label).warn({ modal: true }, i18n('explorer.ok'))
       .then(reply => {
         if (reply) {
           const sub = Configuration.explorer.subscriptions;
-          if (sub.includes(node.label)) {
+          if (sub.includes(label)) {
             Configuration.explorer.subscriptions = sub.filter(v => v !== node.label);
           }
         }

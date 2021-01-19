@@ -79,7 +79,7 @@ export class GistTreeProvider implements ITreeProvider<IGist>, TreeDataProvider<
     this.starredItems = this.starredItems.sort(fn);
     this.unstarredItems = this.unstarredItems.sort(fn);
 
-    this.onDidChangeTreeDataEmitter.fire();
+    this.onDidChangeTreeDataEmitter.fire(null);
   }
 
   sortByLabel() {

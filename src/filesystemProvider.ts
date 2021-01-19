@@ -2,6 +2,8 @@ import i18n from './i18n';
 
 import { extensions, Disposable, Event, EventEmitter, FileChangeEvent, FileChangeType, FileStat, FileSystemError, FileSystemProvider, FileType, Uri } from 'vscode';
 
+import * as path from 'path';
+
 import * as chokidar from 'chokidar';
 
 import * as filesystem from './filesystem';
@@ -23,12 +25,12 @@ export default class GistFileSystemProvider implements IGistFileSystemProvider {
   readonly onDidChangeFile: Event<FileChangeEvent[]> = this.onDidChangeFileEmitter.event;
 
   static homeDirectory(): string {
-    return extensions.getExtension(constans.EXTENSION_ID).extensionPath;
+    return path.join(extensions.getExtension(constans.EXTENSION_ID).extensionPath, 'gist');
   }
 
   static fullPath(uri: Uri): string {
     const home = GistFileSystemProvider.homeDirectory();
-    return `${home}/${uri.authority}${uri.fsPath}`;
+    return path.join(home, uri.authority, uri.fsPath)
   }
 
   static parseGist(gist: { id: string }): Uri {
