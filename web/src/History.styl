@@ -1,0 +1,47 @@
+.history
+  color: var(--vscode-editor-foreground)
+  font-family: var(--vscode-editor-font-family)
+  font-size: var(--vscode-editor-font-size)
+  font-weight: var(--vscode-editor-font-weight)
+
+.card
+  cursor: pointer
+  background-color: var(--vscode-dropdown-background)
+  border: 1px solid var(--vscode-dropdown-border)
+
+  &:hover
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3)
+    transition: box-shadow 0.3s ease-in-out
+
+  .card-header, .card-footer
+    border-bottom: 0
+    border-top: 0
+
+  .card-body
+    border-bottom: 1px solid var(--vscode-dropdown-border)
+    border-top: 1px solid var(--vscode-dropdown-border)
+    a
+      color: var(--vscode-editor-foreground)
+      :hover
+        color: var(--vscode-editor-foreground)
+      :focus
+        outline: none
+
+  .card-icon
+    width: 48px
+    height: 48px
+
+  .text-muted
+    color: var(--vscode-editorHint-foreground) !important
+
+  .branch-icon
+    overflow: visible
+    display: inline-block
+    font-size: inherit
+    width: 0.75e
+    height: 1em
+    vertical-align: -0.125em
+
+  .file-icon
+    fill: var(--vscode-editor-foreground)
+    stroke: var(--vscode-editor-foreground)
