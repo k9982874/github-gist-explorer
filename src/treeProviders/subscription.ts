@@ -181,8 +181,8 @@ export class SubscriptionTreeProvider implements ITreeProvider<Subscription>, VS
           }
         }
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -197,8 +197,8 @@ export class SubscriptionTreeProvider implements ITreeProvider<Subscription>, VS
           }
         }
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 }

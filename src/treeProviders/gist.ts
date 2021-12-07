@@ -52,8 +52,8 @@ export class GistTreeProvider implements ITreeProvider<IGist>, VSCode.TreeDataPr
 
         this.sort();
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 

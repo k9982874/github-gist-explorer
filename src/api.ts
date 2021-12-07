@@ -75,7 +75,7 @@ export function list(username: string): Promise<IGist[]> {
         }
         return p(page + 1, [...results, ...data]);
       })
-      .catch(error => {
+      .catch(() => {
         return Promise.resolve([]);
       });
   };
@@ -102,7 +102,7 @@ export function listStarred(): Promise<IGist[]> {
         }
         return p(page + 1, [...results, ...data]);
       })
-      .catch(error => {
+      .catch(() => {
         return Promise.resolve([]);
       });
   };
@@ -231,6 +231,19 @@ export function unstar(gistID: string): Promise<void> {
     });
 }
 
+export function fork(gistID: string): Promise<void> {
+  const options: AxiosRequestConfig = createRequestConfig();
+
+  return axios.post(`${Configuration.github.address}/gists/${gistID}/forks`, null, options)
+    .then(response => {
+      if (response.status !== 201) {
+        return Promise.reject(new Error(response.statusText));
+      }
+
+      return Promise.resolve();
+    });
+}
+
 export function updateFile(gistID: string, filename: string, content: string | Buffer): Promise<IGist> {
   return update(gistID, undefined, [{ filename, content }]);
 }
@@ -300,6 +313,7 @@ export const updateWaitable = waitify('explorer.updating_gist', update);
 export const destroyWaitable = waitify('explorer.deleting_gist', destroy);
 export const starWaitable = waitify('explorer.star_gist', star);
 export const unstarWaitable = waitify('explorer.unstar_gist', unstar);
+export const forkWaitable = waitify('explorer.fork_gist', fork);
 export const updateFileWaitable = waitify('explorer.updating_file', updateFile);
 export const deleteFileWaitable = waitify('explorer.deleting_file', deleteFile);
 export const renameFileWaitable = waitify('explorer.renaming_file', renameFile);

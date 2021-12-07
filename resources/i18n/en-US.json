@@ -52,6 +52,7 @@
     "star_gist": "Staring gist...",
     "subscribe_gist": "Please provide the login name that you prefer to subscription. The login name such as \"k9982874\", \"https://github.com/k9982874\" and \"https://gist.github.com/k9982874\" are acceptable.",
     "unstar_gist": "Unstaring gist...",
+    "fork_gist": "Fork gist...",
     "updating_file": "Updating file...",
     "updating_gist": "Updating gist...",
     "unsubscribe_gist": "Unsubscribe gist",

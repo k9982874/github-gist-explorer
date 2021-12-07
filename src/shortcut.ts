@@ -89,8 +89,8 @@ export default class ShortCut {
       if (gist) {
         this.treeProvider.refresh();
       }
-    } catch (error) {
-      VSCode.error(error.message);
+    } catch (err) {
+      VSCode.error(err.message);
     }
   }
 
@@ -113,8 +113,8 @@ export default class ShortCut {
       if (gist) {
         this.treeProvider.refresh();
       }
-    } catch (error) {
-      VSCode.error(error.message);
+    } catch (err) {
+      VSCode.error(err.message);
     }
   }
 
@@ -131,8 +131,8 @@ export default class ShortCut {
       if (gist) {
         this.treeProvider.refresh();
       }
-    } catch (error) {
-      VSCode.error(error.message);
+    } catch (err) {
+      VSCode.error(err.message);
     }
   }
 
@@ -198,8 +198,8 @@ export default class ShortCut {
       if (gist) {
         this.treeProvider.refresh();
       }
-    } catch (error) {
-      VSCode.error(error.message);
+    } catch (err) {
+      VSCode.error(err.message);
     }
   }
 }

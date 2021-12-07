@@ -24,6 +24,7 @@
 	"extension.command.export_gist": "导出",
 	"extension.command.star_gist": "收藏",
 	"extension.command.unstar_gist": "取消收藏",
+	"extension.command.fork_gist": "克隆内容",
 	"extension.command.sync": "同步内容",
 	"extension.command.history": "历史",
 	"extension.command.paste": "粘贴",

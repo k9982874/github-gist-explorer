@@ -126,8 +126,8 @@ export function validate(target: Object, propertyKey: string | symbol, descripto
       .then(config => {
         return method.apply(this, argArray);
       })
-      .catch(error => {
-        VSCode.info(error.message);
+      .catch(err => {
+        VSCode.info(err.message);
         VSCode.execute('workbench.action.openSettings', `@ext:${constans.EXTENSION_ID}`);
         return Promise.resolve();
       });

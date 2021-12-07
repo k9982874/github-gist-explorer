@@ -5,6 +5,7 @@
 
 **Please star the repository whether you like this extension!**
 
+**20211207 New Feature: Allow fork gist from subscription & allow export a subscription**  
 **20211124 New Feature: Open gist with browser & copy gist link to clipboard**  
 **20191126 New Feature: Custom the API address and Sync the gist manually**  
 **20190614 New Feature: Search in the gists or subscriptions**  

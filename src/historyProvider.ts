@@ -83,8 +83,8 @@ export default class HistoryViewProvider implements IWebviewProvider {
           }
         });
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -110,8 +110,8 @@ export default class HistoryViewProvider implements IWebviewProvider {
           }
         }
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 }

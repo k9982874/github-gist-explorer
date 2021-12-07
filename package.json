@@ -225,6 +225,10 @@
         "title": "%extension.command.unstar_gist%"
       },
       {
+        "command": "GitHubGistExplorer.forkGist",
+        "title": "%extension.command.fork_gist%"
+      },
+      {
         "command": "GitHubGistExplorer.sync",
         "title": "%extension.command.sync%"
       },
@@ -405,6 +409,10 @@
         },
         {
           "command": "GitHubGistExplorer.unstarGist",
+          "when": "false"
+        },
+        {
+          "command": "GitHubGistExplorer.forkGist",
           "when": "false"
         },
         {
@@ -672,14 +680,19 @@
           "group": "GistMenuGroup1@1"
         },
         {
-          "command": "GitHubGistExplorer.openInBrowser",
+          "command": "GitHubGistExplorer.forkGist",
           "when": "view == SubscriptionTree && viewItem =~ /^Gist/",
           "group": "GistMenuGroup2@1"
         },
         {
+          "command": "GitHubGistExplorer.openInBrowser",
+          "when": "view == SubscriptionTree && viewItem =~ /^Gist/",
+          "group": "GistMenuGroup3@1"
+        },
+        {
           "command": "GitHubGistExplorer.copyToClipboard",
           "when": "view == SubscriptionTree && viewItem =~ /^Gist/",
-          "group": "GistMenuGroup2@2"
+          "group": "GistMenuGroup3@2"
         },
         {
           "command": "GitHubGistExplorer.openInBrowser",

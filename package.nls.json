@@ -24,6 +24,7 @@
 	"extension.command.export_gist": "Export Gist",
 	"extension.command.star_gist": "Star Gist",
 	"extension.command.unstar_gist": "Unstar Gist",
+	"extension.command.fork_gist": "Fork Gist",
 	"extension.command.sync": "Sync Gist",
 	"extension.command.history": "History",
 	"extension.command.paste": "Paste",

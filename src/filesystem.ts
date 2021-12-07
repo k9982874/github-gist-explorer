@@ -17,32 +17,32 @@ export interface IStatAndLink {
   isSymbolicLink: boolean;
 }
 
-function handleResult<T>(resolve: (result: T) => void, reject: (error: Error) => void, error: Error | null | undefined, result: T): void {
-  if (error) {
-    reject(massageError(error));
+function handleResult<T>(resolve: (result: T) => void, reject: (err: Error) => void, err: Error | null | undefined, result: T): void {
+  if (err) {
+    reject(massageError(err));
   } else {
     resolve(result);
   }
 }
 
-function massageError(error: Error & { code?: string }): Error {
-  if (error.code === 'ENOENT') {
+function massageError(err: Error & { code?: string }): Error {
+  if (err.code === 'ENOENT') {
     return FileSystemError.FileNotFound();
   }
 
-  if (error.code === 'EISDIR') {
+  if (err.code === 'EISDIR') {
     return FileSystemError.FileIsADirectory();
   }
 
-  if (error.code === 'EEXIST') {
+  if (err.code === 'EEXIST') {
     return FileSystemError.FileExists();
   }
 
-  if (error.code === 'EPERM' || error.code === 'EACCESS') {
+  if (err.code === 'EPERM' || err.code === 'EACCESS') {
     return FileSystemError.NoPermissions();
   }
 
-  return error;
+  return err;
 }
 
 export function checkCancellation(token: CancellationToken): void {
@@ -68,7 +68,7 @@ export function normalizeNFC(items: string | string[]): string | string[] {
 
 export function readdir(dir: string): Promise<string[]> {
   return new Promise<string[]>((resolve, reject) => {
-    fs.readdir(dir, (error, children) => handleResult(resolve, reject, error, normalizeNFC(children)));
+    fs.readdir(dir, (err, children) => handleResult(resolve, reject, err, normalizeNFC(children)));
   });
 }
 
@@ -89,19 +89,19 @@ export function walkdir(dir: string, exculds?: string[]): Promise<string[]> {
 
 export function stat(path: string): Promise<fs.Stats> {
   return new Promise<fs.Stats>((resolve, reject) => {
-    fs.stat(path, (error, stat) => handleResult(resolve, reject, error, stat));
+    fs.stat(path, (err, stat) => handleResult(resolve, reject, err, stat));
   });
 }
 
 export function readfile(path: string): Promise<Buffer> {
   return new Promise<Buffer>((resolve, reject) => {
-    fs.readFile(path, (error, buffer) => handleResult(resolve, reject, error, buffer));
+    fs.readFile(path, (err, buffer) => handleResult(resolve, reject, err, buffer));
   });
 }
 
 export function writefile(path: string | number, content: String | Buffer): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    fs.writeFile(path, content, error => handleResult(resolve, reject, error, void 0));
+    fs.writeFile(path, content, err => handleResult(resolve, reject, err, void 0));
   });
 }
 
@@ -113,44 +113,44 @@ export function exists(path: string): Promise<boolean> {
 
 export function rmrf(path: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    rimraf(path, error => handleResult(resolve, reject, error, void 0));
+    rimraf(path, err => handleResult(resolve, reject, err, void 0));
   });
 }
 
 export function mkdir(path: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    mkdirp(path, error => handleResult(resolve, reject, error, void 0));
+    mkdirp(path, err => handleResult(resolve, reject, err, void 0));
   });
 }
 
 export function rename(oldPath: string, newPath: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    fs.rename(oldPath, newPath, error => handleResult(resolve, reject, error, void 0));
+    fs.rename(oldPath, newPath, err => handleResult(resolve, reject, err, void 0));
   });
 }
 
 export function unlink(path: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    fs.unlink(path, error => handleResult(resolve, reject, error, void 0));
+    fs.unlink(path, err => handleResult(resolve, reject, err, void 0));
   });
 }
 
 export function statLink(path: string): Promise<IStatAndLink> {
   return new Promise((resolve, reject) => {
-    fs.lstat(path, (error, lstat) => {
-      if (error || lstat.isSymbolicLink()) {
-        fs.stat(path, (error, stat) => {
-          if (error) {
-            return handleResult(resolve, reject, error, void 0);
+    fs.lstat(path, (err, lstat) => {
+      if (err || lstat.isSymbolicLink()) {
+        fs.stat(path, (err, stat) => {
+          if (err) {
+            return handleResult(resolve, reject, err, void 0);
           }
 
-          handleResult(resolve, reject, error, {
+          handleResult(resolve, reject, err, {
             stat,
             isSymbolicLink: lstat && lstat.isSymbolicLink()
           });
         });
       } else {
-        handleResult(resolve, reject, error, {
+        handleResult(resolve, reject, err, {
           stat: lstat,
           isSymbolicLink: false
         });
@@ -161,6 +161,6 @@ export function statLink(path: string): Promise<IStatAndLink> {
 
 export function copyFile(src: string, dest: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    fs.copyFile(src, dest, error => handleResult(resolve, reject, error, void 0));
+    fs.copyFile(src, dest, err => handleResult(resolve, reject, err, void 0));
   });
 }

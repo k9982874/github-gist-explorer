@@ -24,9 +24,9 @@ if (process.env.VSCODE_NLS_CONFIG) {
   }
 }
 
-i18next.init(options, function (error, t) {
-  if (error) {
-    console.error(error);
+i18next.init(options, function (err, t) {
+  if (err) {
+    console.error(err);
     return;
   }
   translator = t;

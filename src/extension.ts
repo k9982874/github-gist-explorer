@@ -135,8 +135,8 @@ export class GitHubGistExplorer extends Subscriber {
           this.gistTree.refresh();
         }
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -157,8 +157,8 @@ export class GitHubGistExplorer extends Subscriber {
             });
         }
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -178,8 +178,8 @@ export class GitHubGistExplorer extends Subscriber {
             });
         }
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -190,8 +190,8 @@ export class GitHubGistExplorer extends Subscriber {
       .then(() => {
         this.gistTree.refresh();
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -202,8 +202,21 @@ export class GitHubGistExplorer extends Subscriber {
       .then(() => {
         this.gistTree.refresh();
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
+      });
+  }
+
+  @Command('GitHubGistExplorer.forkGist')
+  forkGist(commandId: string, node: GistTreeItem) {
+    const gist: IGist = node.metadata;
+
+    api.forkWaitable(gist.id)
+      .then(() => {
+        this.gistTree.refresh();
+      })
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -219,8 +232,8 @@ export class GitHubGistExplorer extends Subscriber {
           const msg = `${now}: ${i18n('explorer.sync_succeed', 'ALL')}`;
           VSCode.info(msg);
         })
-        .catch(error => {
-          console.log(error);
+        .catch(err => {
+          console.log(err);
           const msg = `${now}: ${i18n('explorer.sync_succeed', 'ALL')}`;
           VSCode.error(msg);
         });
@@ -232,8 +245,8 @@ export class GitHubGistExplorer extends Subscriber {
         .then(() => {
           const msg = `${now}: ${i18n('explorer.sync_succeed', gist.label)}`;
           VSCode.info(msg);
-        }).catch(error => {
-          console.log(error);
+        }).catch(err => {
+          console.log(err);
           const msg = `${now}: ${i18n('explorer.sync_succeed', gist.label)}`;
           VSCode.error(msg);
         });
@@ -245,8 +258,8 @@ export class GitHubGistExplorer extends Subscriber {
         .then(() => {
           const msg = `${now}: ${i18n('explorer.sync_succeed', file.filename)}`;
           VSCode.info(msg);
-        }).catch(error => {
-          console.log(error);
+        }).catch(err => {
+          console.log(err);
           const msg = `${now}: ${i18n('explorer.sync_failed', file.filename)}`;
           VSCode.error(msg);
         });
@@ -268,8 +281,8 @@ export class GitHubGistExplorer extends Subscriber {
             .then(() => {
               const msg = `${now}: ${i18n('explorer.sync_succeed', file.filename)}`;
               VSCode.info(msg);
-            }).catch(error => {
-              console.log(error);
+            }).catch(err => {
+              console.log(err);
               const msg = `${now}: ${i18n('explorer.sync_failed', file.filename)}`;
               VSCode.error(msg);
             });
@@ -362,7 +375,7 @@ export class GitHubGistExplorer extends Subscriber {
             .then(() => {
               return new Date().toLocaleString() + ': ' + i18n('explorer.export_succeed', v.filename);
             })
-            .catch(error => {
+            .catch(() => {
               return new Date().toLocaleString() + ': ' + i18n('explorer.export_failed', v.filename);
             });
         });
@@ -383,8 +396,8 @@ export class GitHubGistExplorer extends Subscriber {
           VSCode.showTextDocument(uri);
         }
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -414,7 +427,7 @@ export class GitHubGistExplorer extends Subscriber {
             .then(() => {
               return new Date().toLocaleString() + ': ' + i18n('explorer.export_succeed', file.filename);
             })
-            .catch(error => {
+            .catch(() => {
               return new Date().toLocaleString() + ': ' + i18n('explorer.export_failed', file.filename);
             });
         });
@@ -435,8 +448,8 @@ export class GitHubGistExplorer extends Subscriber {
           VSCode.showTextDocument(uri);
         }
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -450,8 +463,8 @@ export class GitHubGistExplorer extends Subscriber {
           this.createFile(node, content);
         }
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -469,8 +482,8 @@ export class GitHubGistExplorer extends Subscriber {
             return this.createFile(node);
         }
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -557,8 +570,8 @@ export class GitHubGistExplorer extends Subscriber {
       .then(doc => {
         VSCode.showTextDocument(doc, { preview: true });
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -587,8 +600,8 @@ export class GitHubGistExplorer extends Subscriber {
             });
         }
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -620,8 +633,8 @@ export class GitHubGistExplorer extends Subscriber {
             this.gistTree.refresh();
           });
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -635,8 +648,8 @@ export class GitHubGistExplorer extends Subscriber {
       .then(() => {
         this.gistFileSystem.readFile(uri);
       })
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 
@@ -651,8 +664,8 @@ export class GitHubGistExplorer extends Subscriber {
   copyToClipboard(commandId: string, node: GistTreeItem | FileTreeItem) {
     const url = (node instanceof GistTreeItem) ? node.metadata.htmlURL :node.metadata.rawURL
     clipboardy.write(url)
-      .catch(error => {
-        VSCode.error(error.message);
+      .catch(err => {
+        VSCode.error(err.message);
       });
   }
 

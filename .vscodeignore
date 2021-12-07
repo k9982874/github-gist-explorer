@@ -1,0 +1,15 @@
+.vscode/**
+.vscode-test/**
+gist
+test/**
+src/**
+web/**
+resources/i18n/**
+images/**
+node_modules/**
+**/*.map
+.gitignore
+package-lock.json
+tsconfig.json
+tslint.json
+webpack.config.js
